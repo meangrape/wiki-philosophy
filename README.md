@@ -39,12 +39,19 @@ disposable (see Postgres settings below).
 
 ### Running
 
-The whole pipeline, parser through reports, with a log in `run.log`:
-
 ```sh
-./run.sh [path/to/dump.xml.bz2] [database]      # defaults: the enwiki dump here, wiki-phil
+make                      # build, parse, load, classify both rules, all reports; log in run.log
+make parse                # just the CSV
+make load                 # through the Postgres load
+make topology             # both rules classified
+make stats                # short summary for both rules, with example chains
+make report compare stats-full
+make DUMP=~/dumps/enwiki.xml.bz2 DB=wiki
 ```
 
+Stages are tracked with stamp files in `.stamps/`, so editing a SQL file and
+running `make` reruns only that stage and the ones after it. `make clean`
+forgets the stamps; `make distclean` also removes the CSV and the Rust build.
 The stages by hand:
 
 ```sh
@@ -182,7 +189,12 @@ N clicks under both rules side by side, with two denominators: all articles,
 and only the articles that reach Philosophy under that rule. The denominator
 matters: under the strict rule roughly half of all articles never arrive.
 
-**05_stats.sql**, per rule: cumulative shares and milestones ("50% of articles
+**06_summary.sql** (`make stats`): both rules on one page: where articles end
+up, mean, median and modal clicks, milestones, Philosophy's own chain under
+each rule, and random example chains of articles that end in a cycle or at a
+dead end, printed in full. It includes `06_summary_rule.sql` once per rule.
+
+**05_stats.sql** (`make stats-full`), per rule: cumulative shares and milestones ("50% of articles
 within N clicks"), Philosophy's own loop length, articles exactly as far from
 Philosophy as Philosophy is from itself, farthest chain heads, single-file
 tails (long chains that own the far distances, such as the Eastern Orthodox
@@ -197,22 +209,39 @@ shortest roads from unexpected places.
 | `wiki_topology`, `wiki_topology_paren` | `page_id`, `terminal_type` (`philosophy`, `dead_end`, `cycle`), `terminal_id`, `distance` |
 | `cycle_nodes`, `cycle_nodes_paren` | cycle members with `cycle_id` and `cycle_len` |
 
-## Results snapshot (dump of 2026-10-01, strict rule)
+## Results snapshot (dump of 2026-10-01)
 
-- Articles: 7,249,098. Redirects: 12,065,386. Red-link targets: 31,460.
-  Articles with no qualifying first link: 34,070 (mostly disambiguation
-  pages, whose links are italicized).
-- 51.5% of articles reach Philosophy, 47.4% end in a cycle, 1.0% at a dead
-  end. Mean distance for those that arrive: 15.2 clicks, mode 16.
-- Philosophy itself does not loop back: Philosophy → Existence → Reality →
-  Existence. The largest trap is a seven-page loop, Attitude (psychology) →
-  Psychology → Mind → Thought → Cognition → Knowledge → Belief, holding
-  3.1 million articles.
-- The longest distance is 201 clicks, the saint Gelasius, via 168 single-file
-  pages of the Eastern Orthodox liturgical calendar. Every other article is
-  within 39.
+Articles: 7,249,098. Redirects: 12,065,386. Red-link targets: 30,031.
+Articles with no qualifying first link: 34,728 strict, 32,137 parentheses
+rule (mostly disambiguation pages, whose links are italicized). The two rules
+pick a different first link for 345,844 articles, 4.8%.
 
-Rerun the reports for current numbers; the parentheses-rule results differ.
+| where articles end up | strict rule | parentheses rule |
+|---|---|---|
+| Philosophy | 51.5% | 94.8% |
+| a cycle | 47.4% | 4.2% |
+| a dead end | 1.0% | 1.0% |
+| mean clicks, those arriving | 15.2 | 14.1 |
+
+Clicks needed to cover a share of all articles: 25% within 16 (strict) or 11
+(parentheses); 50% within 25 or 15; 90% never (strict) or 21 (parentheses).
+
+- Under the strict rule Philosophy does not loop back: Philosophy →
+  Existence → Reality → Existence, and a seven-page loop, Attitude
+  (psychology) → Psychology → Mind → Thought → Cognition → Knowledge →
+  Belief, holds 3.1 million articles. 3.17 million articles that end in a
+  cycle under the strict rule reach Philosophy under the parentheses rule.
+- Under the parentheses rule Philosophy returns to itself in 9 clicks:
+  Philosophy → Ancient Greek → Greek language → Indo-European languages →
+  Language family → Language → Communication → Information → Abstract and
+  concrete → Philosophy. The largest remaining traps are Mathematics ↔
+  Number theory (86,081 articles) and Existence ↔ Reality (45,716).
+- The longest distance under both rules is 201 clicks, the saint Gelasius,
+  via about 170 single-file pages of the Eastern Orthodox liturgical calendar,
+  each linking first to the previous day. Every other article is within 39
+  (strict) or 35 (parentheses).
+
+Rerun the reports for current numbers.
 
 ## Parser design notes
 
