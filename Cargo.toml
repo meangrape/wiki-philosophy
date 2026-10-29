@@ -1,0 +1,12 @@
+[package]
+name = "wiki-philosophy"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+quick-xml = "0.31"
+bzip2 = "0.6" # default backend is libbz2-rs-sys, a pure-Rust port; faster than C libbz2 on Apple Silicon
+rayon = "1.10" # Parallel stream decompression + parsing
+crossbeam-channel = "0.5" # Bounded hand-off between scanner, workers, writer
+memmap2 = "0.9" # Map the 27 GB dump so workers can slice it without copies
+memchr = "2" # SIMD search for bzip2 stream headers
