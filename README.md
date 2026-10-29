@@ -46,7 +46,7 @@ make load                 # through the Postgres load
 make topology             # both rules classified
 make stats                # short summary for both rules, with example chains
 make report compare stats-full
-make pdf                  # philosophy.txt, philosophy.md, philosophy.pdf from the full stats
+make pdf                  # philosophy.txt, .md, .pdf: summary, comparison, reports, full stats
 make DUMP=~/dumps/enwiki.xml.bz2 DB=wiki
 ```
 
@@ -195,9 +195,11 @@ up, mean, median and modal clicks, milestones, Philosophy's own chain under
 each rule, and random example chains of articles that end in a cycle or at a
 dead end, printed in full. It includes `06_summary_rule.sql` once per rule.
 
-`make pdf` captures the full stats into `philosophy.txt`, converts it with
-`tools/psql_to_md.py` into `philosophy.md`, and typesets `philosophy.pdf` with
-pandoc and xelatex.
+`make pdf` captures the summary, the comparison, both reports and the full
+stats into `philosophy.txt`, converts it with `tools/psql_to_md.py` into
+`philosophy.md`, and typesets `philosophy.pdf` with pandoc and xelatex. The
+document opens with where articles end up and example chains of articles
+that never reach Philosophy.
 
 **05_stats.sql** (`make stats-full`), per rule: cumulative shares and milestones ("50% of articles
 within N clicks"), Philosophy's own loop length, articles exactly as far from

@@ -75,12 +75,12 @@ stats-full: topology
 	done
 
 pdf: philosophy.pdf
-philosophy.txt: $(RULES:%=$(ST)/topology-%) sql/05_stats.sql
-	$(MAKE) -s stats-full > $@
+philosophy.txt: $(RULES:%=$(ST)/topology-%) sql/03_report.sql sql/04_compare.sql sql/05_stats.sql sql/06_summary.sql sql/06_summary_rule.sql
+	{ $(MAKE) -s stats; $(MAKE) -s compare; $(MAKE) -s report; $(MAKE) -s stats-full; } > $@
 philosophy.md: philosophy.txt tools/psql_to_md.py
 	python3 -I tools/psql_to_md.py $< > $@
 philosophy.pdf: philosophy.md
-	pandoc $< -o $@ --pdf-engine=xelatex --columns=70 --toc --toc-depth=2 \
+	pandoc $< -o $@ --pdf-engine=xelatex --columns=70 --toc --toc-depth=3 \
 	  -V documentclass=extarticle -V fontsize=9pt -V mainfont="Arial" -V monofont="Menlo" \
 	  -V geometry:margin=1.6cm -V colorlinks=true -V linkcolor=black
 
