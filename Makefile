@@ -6,6 +6,7 @@
 #   make topology        both rules classified
 #   make stats           short summary for both rules, with examples
 #   make report compare stats-full
+#   make pdf             philosophy.txt / .md / .pdf from the full stats (needs pandoc + xelatex)
 #   make clean           forget completed stages (keeps the CSV and the database)
 #   make distclean       also delete the CSV and the Rust build
 #
@@ -27,7 +28,7 @@ LOG   := run.log
 ST    := .stamps
 RULES := strict paren
 
-.PHONY: all build parse load topology report compare stats stats-full clean distclean
+.PHONY: all build parse load topology report compare stats stats-full pdf clean distclean
 
 all: report compare stats
 
@@ -72,6 +73,16 @@ stats-full: topology
 	  printf '===== stats-full %s  %s\n' "$$r" "$$(date +%T)" | tee -a $(LOG); \
 	  $(PSQL) -v rule=$$r -f sql/05_stats.sql 2>&1 | tee -a $(LOG); \
 	done
+
+pdf: philosophy.pdf
+philosophy.txt: $(RULES:%=$(ST)/topology-%) sql/05_stats.sql
+	$(MAKE) -s stats-full > $@
+philosophy.md: philosophy.txt tools/psql_to_md.py
+	python3 -I tools/psql_to_md.py $< > $@
+philosophy.pdf: philosophy.md
+	pandoc $< -o $@ --pdf-engine=xelatex --columns=70 --toc --toc-depth=2 \
+	  -V documentclass=extarticle -V fontsize=9pt -V mainfont="Arial" -V monofont="Menlo" \
+	  -V geometry:margin=1.6cm -V colorlinks=true -V linkcolor=black
 
 $(ST):
 	mkdir -p $@
