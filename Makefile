@@ -1,11 +1,11 @@
-# Full pipeline: parse the dump, load Postgres, classify under both rules, report.
+# Full pipeline: parse the dump, load Postgres, classify under all five rules, report.
 #
 #   make                 everything (build, parse, load, topology, reports)
 #   make parse           just the CSV
 #   make load            through the Postgres load
-#   make topology        both rules classified
+#   make topology        all five rules classified
 #   make articles        articles-only results table that the reports read
-#   make stats           short summary for both rules, with examples
+#   make stats           short summary for all five rules, with examples
 #   make report compare stats-full
 #   make pdf             philosophy.txt / .md / .pdf from the full stats (needs pandoc + xelatex)
 #   make docs            regenerate the document from the database as it is, skipping load/topology

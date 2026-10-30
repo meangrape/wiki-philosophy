@@ -39,12 +39,12 @@ disposable (see Postgres settings below).
 ### Running
 
 ```sh
-make                      # build, parse, load, classify both rules, all reports; log in run.log
+make                      # build, parse, load, classify all five rules, all reports; log in run.log
 make parse                # just the CSV
 make load                 # through the Postgres load
-make topology             # both rules classified
+make topology             # all five rules classified
 make articles             # articles-only results table the reports read
-make stats                # short summary for both rules, with example chains
+make stats                # short summary for all five rules, with example chains
 make report compare stats-full
 make pdf                  # philosophy.txt, .md, .pdf: summary, comparison, reports, full stats
 make docs                 # regenerate the document only, from the database as it is
@@ -82,7 +82,7 @@ Parser environment variables:
 | `NULL_SAMPLE=path` | write title + first 300 chars of every page with no qualifying link, up to 3000 |
 
 `./target/release/wiki-philosophy --first-link a.wikitext b.wikitext` prints
-the link the scanner would pick for a wikitext file, under both rules. Useful
+the link the scanner would pick for a wikitext file, under all five rules. Useful
 for checking a single page against a manual walk.
 
 ## The link rules
@@ -165,8 +165,8 @@ containing `{ } < > [ ] |` is treated as no link.
 **01_load.sql.** `COPY` the CSV; deduplicate titles with one `DISTINCT ON`
 pass (a page moved while the dump is written appears twice, once as article
 and once as redirect; the article row wins); assign node ids once; build
-`wiki_pages` in a single `CREATE TABLE AS` with both raw link targets and both
-redirect-collapsed `next_id` columns. No `UPDATE` is run on the big table, so
+`wiki_pages` in a single `CREATE TABLE AS` with the five raw link targets and the five
+redirect-collapsed `next_<rule>` columns. No `UPDATE` is run on the big table, so
 nothing bloats and, under `wal_level = minimal`, nothing is WAL-logged.
 
 **02_topology.sql.** Every node has out-degree at most one, so the graph is a
@@ -189,7 +189,7 @@ estimate the working table and otherwise picks a plan that rescans the whole
 index on every iteration.
 
 **02b_articles.sql** (`make articles`): one row per article with the outcome
-and distance under both rules, so the reports below read a 7 million row
+and distance under each of the five rules, so the reports below read a 7 million row
 table without joining the 19 million row topology tables each time.
 
 **03_report.sql**, per rule: terminal breakdown over articles, click
@@ -205,12 +205,12 @@ rules, with two denominators: all articles, and only the articles that reach
 Philosophy under that rule. The denominator matters: under the strict rule
 roughly half of all articles never arrive.
 
-**06_summary.sql** (`make stats`): both rules on one page: where articles end
+**06_summary.sql** (`make stats`): all five rules on one page: where articles end
 up, mean, median and modal clicks, milestones, Philosophy's own chain under
 each rule, and random example chains of articles that end in a cycle or at a
 dead end, printed in full. It includes `06_summary_rule.sql` once per rule.
 
-`make pdf` captures the summary, the comparison, both reports and the full
+`make pdf` captures the summary, the comparison, the per-rule reports and the full
 stats into `philosophy.txt`, converts it with `tools/psql_to_md.py` into
 `philosophy.md`, and typesets `philosophy.pdf` with pandoc and xelatex. The
 document opens with where articles end up and example chains of articles
