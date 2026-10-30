@@ -1,34 +1,49 @@
-===== stats  20:08:24
+===== stats  21:43:45
 Timing is off.
 CREATE FUNCTION
+SELECT 36245490
+
+== Rules
+- strict: parenthesized, italicized and template links skipped (Wikipedia's strict rule)
+- parens_ok: italicized and template links skipped; parenthesized links count
+- skip_parens: only parenthesized links skipped
+- skip_italics: only italicized links skipped
+- loose: only template links skipped (Wikipedia's loose rule)
+  "template" means inside any {{ }} template or {| |} table: infoboxes, hatnotes, navboxes alike.
 
 == Where articles end up (articles = pages in the dump that are not redirects)
- terminal_type |    strict rule    | parentheses rule  
----------------+-------------------+-------------------
- philosophy    | 3,736,376 (51.5%) | 6,873,334 (94.8%)
- cycle         | 3,438,367 (47.4%) | 305,994 (4.2%)
- dead_end      | 74,355 (1.0%)     | 69,770 (1.0%)
+     rule     |    philosophy     |       cycle       |    dead end    
+--------------+-------------------+-------------------+----------------
+ strict       | 3,736,376 (51.5%) | 3,438,367 (47.4%) | 74,355 (1.0%)
+ parens_ok    | 6,873,334 (94.8%) | 305,994 (4.2%)    | 69,770 (1.0%)
+ skip_parens  | 568,531 (7.8%)    | 6,507,629 (89.8%) | 172,938 (2.4%)
+ skip_italics | 1,193,401 (16.5%) | 5,887,099 (81.2%) | 168,598 (2.3%)
+ loose        | 6,874,936 (94.8%) | 314,365 (4.3%)    | 59,797 (0.8%)
 
 
 == Clicks to Philosophy, over the articles that get there
-  rule  | articles (of all) | mean_clicks | median_clicks | most_common | max_clicks 
---------+-------------------+-------------+---------------+-------------+------------
- strict | 3,736,376 (51.5%) |       15.17 |            16 |          16 |        201
- paren  | 6,873,334 (94.8%) |       14.13 |            15 |          16 |        201
+     rule     | articles (of all) | mean_clicks | median_clicks | most_common | max_clicks 
+--------------+-------------------+-------------+---------------+-------------+------------
+ strict       | 3,736,376 (51.5%) |       15.17 |            16 |          16 |        201
+ parens_ok    | 6,873,334 (94.8%) |       14.13 |            15 |          16 |        201
+ skip_parens  | 568,531 (7.8%)    |       13.67 |            13 |           7 |         45
+ skip_italics | 1,193,401 (16.5%) |       14.79 |            14 |           7 |         55
+ loose        | 6,874,936 (94.8%) |       14.04 |            14 |          16 |        201
 
 
-== Clicks needed to reach Philosophy (blank = that share of articles never reaches it)
- % of all articles | strict clicks | paren clicks 
--------------------+---------------+--------------
-                10 |            10 |            9
-                25 |            16 |           11
-                50 |            25 |           15
-                75 |               |           17
-                90 |               |           21
-                95 |               |             
+== Clicks needed to reach Philosophy (blank = that share of all articles never reaches it)
+ % of all articles | strict | parens_ok | skip_parens | skip_italics | loose 
+-------------------+--------+-----------+-------------+--------------+-------
+                10 |     10 |         9 |             |           17 |     8
+                25 |     16 |        11 |             |              |    11
+                50 |     25 |        15 |             |              |    15
+                75 |        |        17 |             |              |    17
+                90 |        |        21 |             |              |    21
+                95 |        |           |             |              |      
 
+DROP TABLE
 
-################  rule = strict ################
+################  rule = strict ( parenthesized, italicized and template links skipped )################
 
 == Where Philosophy itself leads
                               chain                               
@@ -37,29 +52,29 @@ CREATE FUNCTION
 
 
 == Examples: articles that end in a cycle (random, short chains, common-word titles)
-                                                                                                      chain                                                                                                       
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- Antillognatha -> Monotypic_taxon -> Biology -> Scientific_study -> Knowledge -> Belief -> Attitude_(psychology) -> Psychology -> Mind -> Thought -> Cognition -> (back to Knowledge)
- Article -> Article_(grammar) -> Grammar -> Linguistics -> Science -> Knowledge -> Belief -> Attitude_(psychology) -> Psychology -> Mind -> Thought -> Cognition -> (back to Knowledge)
- Goddin -> Melvin_Goddin -> Republican_Party_(United_States) -> Right-wing_populism -> Ideology -> Belief -> Attitude_(psychology) -> Psychology -> Mind -> Thought -> Cognition -> Knowledge -> (back to Belief)
- Mycophobia -> Mushroom -> Spore -> Biology -> Scientific_study -> Knowledge -> Belief -> Attitude_(psychology) -> Psychology -> Mind -> Thought -> Cognition -> (back to Knowledge)
- Omalogyroidea -> Taxonomic_rank -> Taxonomy_(biology) -> Biology -> Scientific_study -> Knowledge -> Belief -> Attitude_(psychology) -> Psychology -> Mind -> Thought -> Cognition -> (back to Knowledge)
- Phloeosinini -> Tribe_(taxonomy) -> Biology -> Scientific_study -> Knowledge -> Belief -> Attitude_(psychology) -> Psychology -> Mind -> Thought -> Cognition -> (back to Knowledge)
+                                                                                            chain                                                                                            
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Brainwashed -> Brainwashing -> Manipulation_(psychology) -> Psychology -> Mind -> Thought -> Cognition -> Knowledge -> Belief -> Attitude_(psychology) -> (back to Psychology)
+ Marlowe -> Marlowe_(name) -> Andrew_W._Marlowe -> Screenwriter -> (back to Screenwriter)
+ Nose -> Sense -> Biological_system -> Biological_network -> Graph_theory -> Mathematics -> Number_theory -> (back to Mathematics)
+ Pajon -> Pajon_(surname) -> Claude_Pajon -> Theology -> Belief -> Attitude_(psychology) -> Psychology -> Mind -> Thought -> Cognition -> Knowledge -> (back to Belief)
+ Pesvarus -> Monotypic_taxon -> Biology -> Scientific_study -> Knowledge -> Belief -> Attitude_(psychology) -> Psychology -> Mind -> Thought -> Cognition -> (back to Knowledge)
+ Vancosamine -> Amino_sugar -> Organic_chemistry -> Academic_discipline -> Knowledge -> Belief -> Attitude_(psychology) -> Psychology -> Mind -> Thought -> Cognition -> (back to Knowledge)
 
 
 == Examples: articles that hit a dead end (random, common-word titles; kinds: red, none[^deadend])
 [^deadend]: A dead end is a page whose chain stops. **red**: the first link points at a page that does not exist, shown as a red link on Wikipedia. **none**: the page exists but has no qualifying first link, typically a disambiguation page whose links are italicized, or a page whose lead is nothing but templates.
-                                             chain                                              
-------------------------------------------------------------------------------------------------
- Daning -> Daming,_Ningcheng_County -> (dead end: red)
- Freckelton -> Grant_Freckelton -> (dead end: none)
- Hassouna -> Hassouna_family -> (dead end: red)
- Kazansky -> Kazansky_District -> Administrative_divisions_of_Tyumen_Oblast -> (dead end: none)
- Majhgaun -> Chhetrapa_Village_Development_Committee -> (dead end: red)
- Rivalta -> Rivalta,_Lesignano_de'_Bagni -> (dead end: red)
+                                             chain                                             
+-----------------------------------------------------------------------------------------------
+ Gorny -> Gorny_District -> Administrative_divisions_of_the_Sakha_Republic -> (dead end: none)
+ Mahanama -> Mahanama_(arhat) -> (dead end: red)
+ Ravenscroft -> John_Ravenscroft -> John_Ravenscroft_(engineer) -> (dead end: red)
+ Schiffman -> Adir_Shiffman -> (dead end: red)
+ Taisha -> Taisha_(shrine) -> (dead end: red)
+ Yuanjia -> Yuanjia,_Jiahe -> (dead end: red)
 
 
-################  rule = paren ################
+################  rule = parens_ok ( italicized and template links skipped; parenthesized links count )################
 
 == Where Philosophy itself leads
                                                                                      chain                                                                                      
@@ -68,118 +83,244 @@ CREATE FUNCTION
 
 
 == Examples: articles that end in a cycle (random, short chains, common-word titles)
-                                                                  chain                                                                   
-------------------------------------------------------------------------------------------------------------------------------------------
- Aulin -> Ewa_Aulin -> John_Huston -> John_Huston_filmography -> (back to John_Huston)
- Llan -> Llan_(placename) -> Irish_language -> An_Caighdeán_Oifigiúil -> (back to Irish_language)
- Lliar -> Gjirokastër_County -> Counties_of_Albania -> Administrative_divisions_of_Albania -> (back to Counties_of_Albania)
- Long -> Time -> Existence -> Reality -> (back to Existence)
- Sigrity -> Power_integrity -> Data_communication -> Data -> Value_(mathematics) -> Mathematics -> Number_theory -> (back to Mathematics)
- Unclouded -> Melody_Prochet -> Melody's_Echo_Chamber -> (back to Melody_Prochet)
+                                                                 chain                                                                 
+---------------------------------------------------------------------------------------------------------------------------------------
+ Balrothery -> Fingal -> Counties_of_Ireland -> Norman_Irish -> Normans -> Norman_language -> Guernésiais -> (back to Norman_language)
+ Gajush -> Lezhë_County -> Counties_of_Albania -> Administrative_divisions_of_Albania -> (back to Counties_of_Albania)
+ Ghantaraba -> Raga -> Indian_classical_music -> Art_music -> Classical_music -> (back to Art_music)
+ Livingetc -> Future_plc -> Publishing -> (back to Publishing)
+ Maramataka -> Lunar_calendar -> Calendar -> Day -> Time -> Existence -> Reality -> (back to Existence)
+ Parwanaya -> Mandaic_language -> Mandaeism -> (back to Mandaic_language)
 
 
 == Examples: articles that hit a dead end (random, common-word titles; kinds: red, none)
-                        chain                        
------------------------------------------------------
- Iranium -> Alex_Traiman -> (dead end: red)
- Jerlun -> Jerlun,_Kedah -> (dead end: red)
- Trebishte -> Trebishte,_Bulgaria -> (dead end: red)
- Vannucci -> Chiara_Vannucci -> (dead end: red)
- Voets -> Margo_Voets -> (dead end: red)
- Xintun -> Xintun,_Guizhou -> (dead end: red)
+                              chain                              
+-----------------------------------------------------------------
+ Ahwerase -> Akuapem_South_Municipal_District -> (dead end: red)
+ Bankliya -> Gram_Panchayat_Bakliya -> (dead end: red)
+ Flufenacet -> Oxyacetanilide -> (dead end: red)
+ Sulfarsazene -> Metal_indicator -> (dead end: red)
+ Tengo -> Tengo_Miura -> (dead end: red)
+ Volovo -> Volovo,_Bulgaria -> (dead end: red)
 
-===== compare  20:08:29
+
+################  rule = skip_parens ( only parenthesized links skipped )################
+
+== Where Philosophy itself leads
+                              chain                               
+------------------------------------------------------------------
+ Philosophy -> Existence -> Reality -> (loops without Philosophy)
+
+
+== Examples: articles that end in a cycle (random, short chains, common-word titles)
+                                                                              chain                                                                              
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Bottari -> Angela_Maria_Bottari -> Messina -> Messina_Cathedral -> Catholic_Church -> St._Peter's_Basilica -> (back to Catholic_Church)
+ Carting -> Cart -> Working_animal -> Domestication -> Mutualism_(biology) -> Biological_interaction -> Ecology -> Symbiosis -> (back to Biological_interaction)
+ Engelberg -> Attinghausen -> Altdorf,_Uri -> (back to Attinghausen)
+ Hertzoggie -> South_Africa -> ǀXam_language -> (back to South_Africa)
+ Solopos -> Newspaper -> Periodical_literature -> Publication -> Publishing -> (back to Publishing)
+ Tagalog -> Tagalog_language -> Tagalaka_language -> (back to Tagalog_language)
+
+
+== Examples: articles that hit a dead end (random, common-word titles; kinds: red, none)
+                                      chain                                      
+---------------------------------------------------------------------------------
+ Birimdik -> Ainuru_Altybaeva -> (dead end: red)
+ Claoxylon -> Claoxylon_sandwicense -> (dead end: red)
+ Clausinella -> Clausinella_scalaris -> (dead end: red)
+ Labilibaculum -> Labilibaculum_antarcticum -> (dead end: red)
+ Mormogystia -> Mormogystia_brandstetteri -> Aidas_Saldaitis -> (dead end: none)
+ Thecopus -> Thecopus_maingayi -> (dead end: red)
+
+
+################  rule = skip_italics ( only italicized links skipped )################
+
+== Where Philosophy itself leads
+                                                                                                                                                          chain                                                                                                                                                          
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Philosophy -> Ancient_Greek -> Athena_Parthenos -> Chryselephantine_sculpture -> Gold -> Chemical_element -> Chemical_species -> Chemical_nomenclature -> Systematic_name -> Substance_(chemistry) -> Chemistry -> Outline_of_chemistry -> Outline_(list) -> List -> Information -> Abstract_and_concrete -> Philosophy
+
+
+== Examples: articles that end in a cycle (random, short chains, common-word titles)
+                                                          chain                                                          
+-------------------------------------------------------------------------------------------------------------------------
+ Agnero -> Juvenal_Agnero -> Orbaff -> Districts_of_Ivory_Coast -> Ivory_Coast -> L'Abidjanaise -> (back to Ivory_Coast)
+ Bewsiella -> Mite -> Early_Devonian -> Rhynie_chert -> (back to Early_Devonian)
+ Changhua -> County-administered_city -> Administrative_divisions_of_Taiwan -> Taiwan -> (back to Taiwan)
+ Fury -> Rage_(emotion) -> Anger -> (back to Rage_(emotion))
+ Turkiella -> Mite -> Early_Devonian -> Rhynie_chert -> (back to Early_Devonian)
+ Yeoh -> Hokkien -> China -> Taiwan -> (back to Taiwan)
+
+
+== Examples: articles that hit a dead end (random, common-word titles; kinds: red, none)
+                                           chain                                           
+-------------------------------------------------------------------------------------------
+ Bzhedugs -> Circassian_flag -> Circassia -> Union_of_Regional_Councils -> (dead end: red)
+ Cojo -> Cojocaru_And -> (dead end: red)
+ Eskandarabad -> Eskandarabad,_Khuzestan -> (dead end: red)
+ Fagaronine -> Benzophenanthridine -> (dead end: red)
+ Inseparables -> Inséparables_(1999_film) -> (dead end: red)
+ Tainosia -> Jacek_Szwedo -> (dead end: none)
+
+
+################  rule = loose ( only template links skipped (the loose rule) )################
+
+== Where Philosophy itself leads
+                                                                                     chain                                                                                      
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Philosophy -> Ancient_Greek -> Greek_language -> Indo-European_languages -> Language_family -> Language -> Communication -> Information -> Abstract_and_concrete -> Philosophy
+
+
+== Examples: articles that end in a cycle (random, short chains, common-word titles)
+                                                                                  chain                                                                                  
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Aqaq -> Syriac_language -> Syriac_literature -> (back to Syriac_language)
+ Duncormick -> County_Wexford -> Counties_of_Ireland -> Norman_Irish -> Normans -> Norman_language -> Guernésiais -> (back to Norman_language)
+ Groopman -> Jerome_Groopman -> The_New_Yorker -> Harold_Ross -> (back to The_New_Yorker)
+ Sohla -> JAXA -> Japanese_space_program -> (back to JAXA)
+ Tshela -> Kongo_Central -> Provinces_of_the_Democratic_Republic_of_the_Congo -> Democratic_Republic_of_the_Congo -> Zaire -> (back to Democratic_Republic_of_the_Congo)
+ Varghese -> Syriac_language -> Syriac_literature -> (back to Syriac_language)
+
+
+== Examples: articles that hit a dead end (random, common-word titles; kinds: red, none)
+                               chain                               
+-------------------------------------------------------------------
+ Archaeron -> Archaeron_Games_Ltd. -> (dead end: red)
+ Bhasot -> Bhikiasain,_Uttarakhand -> (dead end: red)
+ Brackebusch -> Johann_Georg_Ludwig_Brackebusch -> (dead end: red)
+ Malplaquet -> Malplaquet,_Liège -> (dead end: red)
+ Rutsker -> Rutsker_Parish -> (dead end: red)
+ Tizoxanide -> Thiazolide -> (dead end: red)
+
+===== compare  21:44:08
 Timing is off.
 CREATE FUNCTION
+SELECT 36245490
 
-== Outcome under each rule, articles: rows = strict rule, columns = parentheses rule
- strict ↓  paren → | philosophy | cycle  | dead end |  total  
--------------------+------------+--------+----------+---------
- philosophy        |    3700735 |  34852 |      789 | 3736376
- cycle             |    3166368 | 270920 |     1079 | 3438367
- dead_end          |       6231 |    222 |    67902 |   74355
- total             |    6873334 | 305994 |    69770 | 7249098
+== Rules
+- strict: parenthesized, italicized and template links skipped (Wikipedia's strict rule)
+- parens_ok: italicized and template links skipped; parenthesized links count
+- skip_parens: only parenthesized links skipped
+- skip_italics: only italicized links skipped
+- loose: only template links skipped (Wikipedia's loose rule)
+  "template" means inside any {{ }} template or {| |} table: infoboxes, hatnotes, navboxes alike.
+
+== Where articles end up, by rule
+     rule     |    philosophy     |       cycle       |    dead end    | mean clicks (reaching) | max clicks 
+--------------+-------------------+-------------------+----------------+------------------------+------------
+ strict       | 3,736,376 (51.5%) | 3,438,367 (47.4%) | 74,355 (1.0%)  |                  15.17 |        201
+ parens_ok    | 6,873,334 (94.8%) | 305,994 (4.2%)    | 69,770 (1.0%)  |                  14.13 |        201
+ skip_parens  | 568,531 (7.8%)    | 6,507,629 (89.8%) | 172,938 (2.4%) |                  13.67 |         45
+ skip_italics | 1,193,401 (16.5%) | 5,887,099 (81.2%) | 168,598 (2.3%) |                  14.79 |         55
+ loose        | 6,874,936 (94.8%) | 314,365 (4.3%)    | 59,797 (0.8%)  |                  14.04 |        201
 
 
-== Same, as percent of all articles
- strict ↓  paren → | philosophy | cycle | dead end | total  
+== Each rule against strict: how often the first link differs, and how outcomes move
+     rule     | different first link | philosophy under both | gained philosophy |  lost philosophy  
+--------------+----------------------+-----------------------+-------------------+-------------------
+ parens_ok    | 345,844 (4.8%)       | 3,700,735 (51.1%)     | 3,172,599 (43.8%) | 35,641 (0.5%)
+ skip_parens  | 4,263,849 (58.8%)    | 384,344 (5.3%)        | 184,187 (2.5%)    | 3,352,032 (46.2%)
+ skip_italics | 4,304,807 (59.4%)    | 626,747 (8.6%)        | 566,654 (7.8%)    | 3,109,629 (42.9%)
+ loose        | 481,816 (6.6%)       | 3,688,968 (50.9%)     | 3,185,968 (43.9%) | 47,408 (0.7%)
+
+
+== Articles reaching Philosophy under both strict and the rule: clicks compared
+     rule     | articles (of all) | strict avg clicks | rule avg clicks |     shorter     |       same        |     longer      
+--------------+-------------------+-------------------+-----------------+-----------------+-------------------+-----------------
+ parens_ok    | 3,700,735 (51.1%) |             15.16 |           14.69 | 493,274 (13.3%) | 2,912,520 (78.7%) | 294,941 (8.0%)
+ skip_parens  | 384,344 (5.3%)    |             13.29 |           13.50 | 126,893 (33.0%) | 91,609 (23.8%)    | 165,842 (43.1%)
+ skip_italics | 626,747 (8.6%)    |             14.33 |           14.89 | 239,897 (38.3%) | 93,195 (14.9%)    | 293,655 (46.9%)
+ loose        | 3,688,968 (50.9%) |             15.16 |           14.56 | 581,985 (15.8%) | 2,788,678 (75.6%) | 318,305 (8.6%)
+
+
+== Outcome under strict (rows) vs parens_ok (columns), percent of all articles
+ strict ↓  parens_ok → | philosophy | cycle | dead end | total  
+-----------------------+------------+-------+----------+--------
+ philosophy            |      51.05 |  0.48 |     0.01 |  51.54
+ cycle                 |      43.68 |  3.74 |     0.01 |  47.43
+ dead_end              |       0.09 |  0.00 |     0.94 |   1.03
+ total                 |      94.82 |  4.22 |     0.96 | 100.00
+
+
+== Outcome under strict (rows) vs loose (columns), percent of all articles
+ strict ↓  loose → | philosophy | cycle | dead end | total  
 -------------------+------------+-------+----------+--------
- philosophy        |      51.05 |  0.48 |     0.01 |  51.54
- cycle             |      43.68 |  3.74 |     0.01 |  47.43
- dead_end          |       0.09 |  0.00 |     0.94 |   1.03
- total             |      94.82 |  4.22 |     0.96 | 100.00
+ philosophy        |      50.89 |  0.63 |     0.02 |  51.54
+ cycle             |      43.71 |  3.69 |     0.03 |  47.43
+ dead_end          |       0.24 |  0.01 |     0.78 |   1.03
+ total             |      94.84 |  4.34 |     0.82 | 100.00
 
 
-== Articles reaching Philosophy under both rules: clicks compared
- articles (of all) | strict_avg_clicks | paren_avg_clicks |  paren_shorter  |       same        |  paren_longer  
--------------------+-------------------+------------------+-----------------+-------------------+----------------
- 3,700,735 (51.1%) |             15.16 |            14.69 | 493,274 (13.3%) | 2,912,520 (78.7%) | 294,941 (8.0%)
+== Cumulative share of ALL articles within N clicks of Philosophy, by rule
+ within_clicks | strict | parens_ok | skip_parens | skip_italics | loose 
+---------------+--------+-----------+-------------+--------------+-------
+             0 |   0.00 |      0.00 |        0.00 |         0.00 |  0.00
+             1 |   0.03 |      0.03 |        0.02 |         0.02 |  0.03
+             2 |   0.08 |      0.07 |        0.06 |         0.06 |  0.07
+             3 |   0.13 |      0.12 |        0.12 |         0.11 |  0.12
+             4 |   0.24 |      0.23 |        0.16 |         0.16 |  0.23
+             5 |   0.48 |      0.47 |        0.24 |         0.25 |  0.48
+             6 |   1.68 |      1.92 |        0.64 |         0.84 |  1.90
+             7 |   4.06 |      5.66 |        1.64 |         2.02 |  5.69
+             8 |   6.20 |      9.82 |        2.42 |         3.14 | 10.01
+             9 |   7.97 |     15.41 |        2.96 |         4.22 | 15.61
+            10 |  10.29 |     21.53 |        3.31 |         5.25 | 21.81
+            11 |  12.65 |     27.62 |        3.58 |         6.03 | 27.94
+            12 |  14.80 |     33.56 |        3.84 |         7.09 | 33.91
+            13 |  18.43 |     41.30 |        4.00 |         7.82 | 41.65
+            14 |  21.12 |     47.20 |        4.20 |         8.36 | 47.64
+            15 |  23.91 |     54.72 |        4.42 |         8.79 | 55.40
+            16 |  30.67 |     66.04 |        4.60 |         9.44 | 66.87
+            17 |  35.69 |     75.42 |        5.02 |        10.17 | 76.29
+            18 |  40.13 |     82.34 |        5.24 |        11.14 | 83.18
+            19 |  43.11 |     86.63 |        6.00 |        12.31 | 87.36
+            20 |  45.01 |     89.19 |        6.69 |        13.23 | 89.89
+            21 |  46.22 |     91.08 |        6.96 |        13.86 | 91.74
+            22 |  47.53 |     92.96 |        7.43 |        14.67 | 93.59
+            23 |  49.03 |     93.72 |        7.63 |        15.16 | 94.28
+            24 |  49.93 |     94.28 |        7.74 |        15.58 | 94.56
+            25 |  50.55 |     94.61 |        7.79 |        15.89 | 94.71
+            26 |  50.90 |     94.72 |        7.81 |        16.10 | 94.78
+            27 |  51.14 |     94.77 |        7.83 |        16.20 | 94.81
+            28 |  51.32 |     94.81 |        7.84 |        16.29 | 94.83
+            29 |  51.47 |     94.81 |        7.84 |        16.35 | 94.83
+            30 |  51.53 |     94.81 |        7.84 |        16.40 | 94.83
+            31 |  51.54 |     94.81 |        7.84 |        16.42 | 94.83
+            32 |  51.54 |     94.81 |        7.84 |        16.43 | 94.83
+            33 |  51.54 |     94.81 |        7.84 |        16.44 | 94.83
+            34 |  51.54 |     94.81 |        7.84 |        16.45 | 94.83
+            35 |  51.54 |     94.81 |        7.84 |        16.46 | 94.84
 
 
-== How often the two rules pick a different first link
- articles | different_first_link 
-----------+----------------------
-  7249098 | 345,844 (4.8%)
+== Clicks needed to reach Philosophy, by share of ALL articles (blank = never)
+ % of all articles | strict | parens_ok | skip_parens | skip_italics | loose 
+-------------------+--------+-----------+-------------+--------------+-------
+                10 |     10 |         9 |             |           17 |     8
+                25 |     16 |        11 |             |              |    11
+                50 |     25 |        15 |             |              |    15
+                75 |        |        17 |             |              |    17
+                90 |        |        21 |             |              |    21
+                95 |        |           |             |              |      
+                99 |        |           |             |              |      
 
 
-== Cumulative share of articles within N clicks of Philosophy, both rules
-   (denominator: all articles, or only the articles that reach Philosophy under that rule)
- within_clicks | strict, % of all | strict, % of reaching | paren, % of all | paren, % of reaching 
----------------+------------------+-----------------------+-----------------+----------------------
-             0 |             0.00 |                  0.00 |            0.00 |                 0.00
-             1 |             0.03 |                  0.06 |            0.03 |                 0.03
-             2 |             0.08 |                  0.15 |            0.07 |                 0.08
-             3 |             0.13 |                  0.25 |            0.12 |                 0.12
-             4 |             0.24 |                  0.46 |            0.23 |                 0.24
-             5 |             0.48 |                  0.94 |            0.47 |                 0.50
-             6 |             1.68 |                  3.27 |            1.92 |                 2.02
-             7 |             4.06 |                  7.87 |            5.66 |                 5.97
-             8 |             6.20 |                 12.04 |            9.82 |                10.35
-             9 |             7.97 |                 15.47 |           15.41 |                16.25
-            10 |            10.29 |                 19.95 |           21.53 |                22.71
-            11 |            12.65 |                 24.54 |           27.62 |                29.13
-            12 |            14.80 |                 28.71 |           33.56 |                35.39
-            13 |            18.43 |                 35.75 |           41.30 |                43.55
-            14 |            21.12 |                 40.97 |           47.20 |                49.78
-            15 |            23.91 |                 46.38 |           54.72 |                57.71
-            16 |            30.67 |                 59.51 |           66.04 |                69.65
-            17 |            35.69 |                 69.24 |           75.42 |                79.54
-            18 |            40.13 |                 77.86 |           82.34 |                86.84
-            19 |            43.11 |                 83.64 |           86.63 |                91.36
-            20 |            45.01 |                 87.33 |           89.19 |                94.07
-            21 |            46.22 |                 89.67 |           91.08 |                96.06
-            22 |            47.53 |                 92.22 |           92.96 |                98.04
-            23 |            49.03 |                 95.12 |           93.72 |                98.84
-            24 |            49.93 |                 96.87 |           94.28 |                99.44
-            25 |            50.55 |                 98.07 |           94.61 |                99.78
-            26 |            50.90 |                 98.76 |           94.72 |                99.90
-            27 |            51.14 |                 99.22 |           94.77 |                99.95
-            28 |            51.32 |                 99.56 |           94.81 |                99.99
-            29 |            51.47 |                 99.86 |           94.81 |               100.00
-            30 |            51.53 |                 99.98 |           94.81 |               100.00
-            31 |            51.54 |                 99.99 |           94.81 |               100.00
-            32 |            51.54 |                 99.99 |           94.81 |               100.00
-            33 |            51.54 |                100.00 |           94.81 |               100.00
-            34 |            51.54 |                100.00 |           94.81 |               100.00
-            35 |            51.54 |                100.00 |           94.81 |               100.00
+== Clicks needed to reach Philosophy, by share of the articles that REACH it under the rule
+ % of those reaching | strict | parens_ok | skip_parens | skip_italics | loose 
+---------------------+--------+-----------+-------------+--------------+-------
+                  10 |      8 |         8 |           7 |            7 |     8
+                  25 |     12 |        11 |           8 |            9 |    11
+                  50 |     16 |        15 |          13 |           14 |    14
+                  75 |     18 |        17 |          19 |           20 |    17
+                  90 |     22 |        19 |          22 |           23 |    19
+                  95 |     23 |        21 |          23 |           25 |    21
+                  99 |     27 |        24 |          25 |           29 |    23
 
-
-== Clicks needed to reach Philosophy, by share of articles: all articles vs. only those that reach it (blank = never)
- % of articles | strict, all articles | strict, those reaching | paren, all articles | paren, those reaching 
----------------+----------------------+------------------------+---------------------+-----------------------
-            10 |                   10 |                      8 |                   9 |                     8
-            25 |                   16 |                     12 |                  11 |                    11
-            35 |                   17 |                     13 |                  13 |                    12
-            50 |                   25 |                     16 |                  15 |                    15
-            75 |                      |                     18 |                  17 |                    17
-            90 |                      |                     22 |                  21 |                    19
-            95 |                      |                     23 |                     |                    21
-            99 |                      |                     27 |                     |                    24
-
-===== report strict  20:08:33
+DROP TABLE
+===== report strict  21:45:06
 Timing is off.
 
-################  rule = strict ################
+################  rule = strict ( parenthesized, italicized and template links skipped )################
 
 == Where do articles end up?
  terminal_type | articles |  pct  | avg_clicks | max_clicks 
@@ -305,10 +446,10 @@ Timing is off.
      5864 |         2 | Ski -> Skiing
      3610 |         2 | History_of_Canadian_sports -> Sports_in_Canada
 
-===== report paren  20:08:37
+===== report parens_ok  21:45:10
 Timing is off.
 
-################  rule = paren ################
+################  rule = parens_ok ( italicized and template links skipped; parenthesized links count )################
 
 == Where do articles end up?
  terminal_type | articles |  pct  | avg_clicks | max_clicks 
@@ -434,10 +575,366 @@ Timing is off.
      5511 |         2 | Ski -> Skiing
      3560 |         2 | History_of_Canadian_sports -> Sports_in_Canada
 
-===== stats-full strict  20:08:42
+===== report skip_parens  21:45:15
 Timing is off.
 
-################  rule = strict ################
+################  rule = skip_parens ( only parenthesized links skipped )################
+
+== Where do articles end up?
+ terminal_type | articles |  pct  | avg_clicks | max_clicks 
+---------------+----------+-------+------------+------------
+ cycle         |  6507629 | 89.77 |      10.50 |        187
+ philosophy    |   568531 |  7.84 |      13.67 |         45
+ dead_end      |   172938 |  2.39 |       1.92 |         79
+
+
+== Clicks-to-Philosophy distribution (buckets of 1 up to 30, then 10)
+ clicks | sort_key | articles 
+--------+----------+----------
+ 0      |        0 |        1
+ 1      |        1 |     1282
+ 2      |        2 |     3417
+ 3      |        3 |     3853
+ 4      |        4 |     3363
+ 5      |        5 |     5185
+ 6      |        6 |    29467
+ 7      |        7 |    72555
+ 8      |        8 |    56442
+ 9      |        9 |    39015
+ 10     |       10 |    25154
+ 11     |       11 |    19523
+ 12     |       12 |    19074
+ 13     |       13 |    11774
+ 14     |       14 |    14044
+ 15     |       15 |    16164
+ 16     |       16 |    12996
+ 17     |       17 |    30393
+ 18     |       18 |    16158
+ 19     |       19 |    55043
+ 20     |       20 |    50388
+ 21     |       21 |    19465
+ 22     |       22 |    34152
+ 23     |       23 |    14265
+ 24     |       24 |     8040
+ 25     |       25 |     3753
+ 26     |       26 |     1517
+ 27     |       27 |     1256
+ 28     |       28 |      307
+ 29     |       29 |      284
+ 30     |       30 |      123
+ 30-39  |       31 |       72
+ 40-49  |       40 |        6
+
+
+== Longest roads to Philosophy
+                  title                   | clicks 
+------------------------------------------+--------
+ 2025–26_CAF_Champions_League_group_stage |     45
+ 2024–25_CAF_Champions_League_group_stage |     44
+ 2023–24_CAF_Champions_League_group_stage |     43
+ 2022–23_CAF_Champions_League_group_stage |     42
+ 2021–22_CAF_Champions_League_group_stage |     41
+ 2020–21_CAF_Champions_League_group_stage |     40
+ 2019–20_CAF_Champions_League_group_stage |     39
+ 1978–79_Tercera_División                 |     38
+ 2018–19_CAF_Champions_League_group_stage |     38
+ 1977–78_Tercera_División                 |     37
+
+
+== Where Philosophy itself leads (chain until a node repeats)
+               chain                
+------------------------------------
+ Philosophy -> Existence -> Reality
+
+
+== Biggest dead ends (kind: red = link to a page that does not exist, none = page has no qualifying first link)
+                      dead_end                       | kind | articles_ending_here 
+-----------------------------------------------------+------+----------------------
+ Erling_Sivertsen                                    | red  |                 4615
+ Kubanychbek_Malikov                                 | red  |                 1370
+ Lípsia_(singer)                                     | red  |                 1362
+ Dirk_Ahrens                                         | none |                 1226
+ John_Ernest_Breun                                   | red  |                 1106
+ Lend_Lease_Program                                  | red  |                  963
+ Coal_Industry_Act_1973                              | red  |                  852
+ Council_of_Quebec                                   | red  |                  731
+ List_of_UK_Parliamentary_constituencies_(1950–1955) | red  |                  669
+ Ernst_Brenske                                       | none |                  586
+ Wootton_St_Lawrence_with_Ramsdell                   | red  |                  568
+ Emilio_Rolán                                        | none |                  544
+ Chrissy_Schoonmaker                                 | red  |                  484
+ Molumong                                            | red  |                  465
+ Jeremy_Daniel_Holloway                              | none |                  417
+
+
+== Dead ends by kind
+ kind | dead_ends | articles_trapped 
+------+-----------+------------------
+ none |      8636 |            34005
+ red  |     77524 |           138933
+
+
+== Biggest cycles
+ articles | cycle_len |                                            loop                                            
+----------+-----------+--------------------------------------------------------------------------------------------
+  2116587 |         2 | Provinces_of_Laos -> Xaisomboun_province
+   691578 |         7 | Attitude_(psychology) -> Psychology -> Mind -> Thought -> Cognition -> Knowledge -> Belief
+   673781 |         2 | Antequera_Dolmens_Site -> Dolmen_of_Menga
+   282303 |         2 | Medieval_stained_glass -> Middle_Ages
+   277137 |         2 | Mathematics -> Number_theory
+   181630 |         2 | Branches_of_physics -> Physics
+   120726 |         2 | Commonwealth_of_Nations -> Member_states_of_the_Commonwealth_of_Nations
+    72781 |         2 | Cerebrum -> Frontal_lobe
+    69899 |         2 | East_Renfrewshire_(constituency) -> Renfrewshire_(UK_Parliament_constituency)
+    67436 |         2 | UK_(disambiguation) -> United_Kingdom
+
+===== report skip_italics  21:45:18
+Timing is off.
+
+################  rule = skip_italics ( only italicized links skipped )################
+
+== Where do articles end up?
+ terminal_type | articles |  pct  | avg_clicks | max_clicks 
+---------------+----------+-------+------------+------------
+ cycle         |  5887099 | 81.21 |       9.85 |        187
+ philosophy    |  1193401 | 16.46 |      14.79 |         55
+ dead_end      |   168598 |  2.33 |       1.88 |         79
+
+
+== Clicks-to-Philosophy distribution (buckets of 1 up to 30, then 10)
+ clicks | sort_key | articles 
+--------+----------+----------
+ 0      |        0 |        1
+ 1      |        1 |     1131
+ 2      |        2 |     3337
+ 3      |        3 |     3756
+ 4      |        4 |     3294
+ 5      |        5 |     6741
+ 6      |        6 |    42415
+ 7      |        7 |    86052
+ 8      |        8 |    81069
+ 9      |        9 |    77965
+ 10     |       10 |    75123
+ 11     |       11 |    55883
+ 12     |       12 |    77468
+ 13     |       13 |    52332
+ 14     |       14 |    39119
+ 15     |       15 |    31832
+ 16     |       16 |    46694
+ 17     |       17 |    52920
+ 18     |       18 |    70118
+ 19     |       19 |    84899
+ 20     |       20 |    66557
+ 21     |       21 |    46180
+ 22     |       22 |    58426
+ 23     |       23 |    35722
+ 24     |       24 |    30395
+ 25     |       25 |    22798
+ 26     |       26 |    14516
+ 27     |       27 |     7829
+ 28     |       28 |     6560
+ 29     |       29 |     4191
+ 30     |       30 |     3336
+ 30-39  |       31 |     4619
+ 40-49  |       40 |       87
+ 50-59  |       50 |       36
+
+
+== Longest roads to Philosophy
+                           title                           | clicks 
+-----------------------------------------------------------+--------
+ 2003_World_Table_Tennis_Championships_–_Men's_doubles     |     55
+ 2003_World_Table_Tennis_Championships_–_Men's_singles     |     55
+ 2003_World_Table_Tennis_Championships_–_Women's_doubles   |     55
+ 2003_World_Table_Tennis_Championships_–_Women's_singles   |     55
+ 2004_World_Team_Table_Tennis_Championships_–_Men's_team   |     55
+ 2004_World_Team_Table_Tennis_Championships_–_Women's_team |     55
+ 2001_World_Table_Tennis_Championships_–_Men's_doubles     |     54
+ 2001_World_Table_Tennis_Championships_–_Men's_singles     |     54
+ 2001_World_Table_Tennis_Championships_–_Men's_team        |     54
+ 2001_World_Table_Tennis_Championships_–_Women's_doubles   |     54
+
+
+== Where Philosophy itself leads (chain until a node repeats)
+                                                                                                                                                   chain                                                                                                                                                   
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Philosophy -> Ancient_Greek -> Athena_Parthenos -> Chryselephantine_sculpture -> Gold -> Chemical_element -> Chemical_species -> Chemical_nomenclature -> Systematic_name -> Substance_(chemistry) -> Chemistry -> Outline_of_chemistry -> Outline_(list) -> List -> Information -> Abstract_and_concrete
+
+
+== Biggest dead ends (kind: red = link to a page that does not exist, none = page has no qualifying first link)
+                      dead_end                       | kind | articles_ending_here 
+-----------------------------------------------------+------+----------------------
+ Erling_Sivertsen                                    | red  |                 4602
+ Lípsia_(singer)                                     | red  |                 1396
+ Kubanychbek_Malikov                                 | red  |                 1366
+ Dirk_Ahrens                                         | none |                 1226
+ John_Ernest_Breun                                   | red  |                 1100
+ Lend_Lease_Program                                  | red  |                  953
+ Tui_Atua_Tupua_Tamasese_Efi_Government_Building     | red  |                  913
+ Ancient_roman                                       | red  |                  907
+ Coal_Industry_Act_1973                              | red  |                  857
+ Council_of_Quebec                                   | red  |                  732
+ List_of_UK_Parliamentary_constituencies_(1950–1955) | red  |                  680
+ Ernst_Brenske                                       | none |                  586
+ Emilio_Rolán                                        | none |                  541
+ Wootton_St_Lawrence_with_Ramsdell                   | red  |                  530
+ Chrissy_Schoonmaker                                 | red  |                  451
+
+
+== Dead ends by kind
+ kind | dead_ends | articles_trapped 
+------+-----------+------------------
+ none |     14469 |            40321
+ red  |     69484 |           128277
+
+
+== Biggest cycles
+ articles | cycle_len |                                     loop                                      
+----------+-----------+-------------------------------------------------------------------------------
+  2828655 |         2 | Provinces_of_Laos -> Xaisomboun_province
+   203867 |         2 | English_language -> English-speaking_world
+   159076 |         2 | UK_(disambiguation) -> United_Kingdom
+   157278 |         2 | Medieval_stained_glass -> Middle_Ages
+   136712 |         2 | Mathematics -> Number_theory
+   117977 |         2 | Branches_of_physics -> Physics
+   115029 |         2 | Commonwealth_of_Nations -> Member_states_of_the_Commonwealth_of_Nations
+    90806 |         2 | French_language -> Lingua_franca
+    89091 |         2 | Existence -> Reality
+    71573 |         2 | East_Renfrewshire_(constituency) -> Renfrewshire_(UK_Parliament_constituency)
+
+===== report loose  21:45:22
+Timing is off.
+
+################  rule = loose ( only template links skipped (the loose rule) )################
+
+== Where do articles end up?
+ terminal_type | articles |  pct  | avg_clicks | max_clicks 
+---------------+----------+-------+------------+------------
+ philosophy    |  6874936 | 94.84 |      14.04 |        201
+ cycle         |   314365 |  4.34 |       3.92 |         33
+ dead_end      |    59797 |  0.82 |       0.73 |          7
+
+
+== Clicks-to-Philosophy distribution (buckets of 1 up to 30, then 10)
+ clicks  | sort_key | articles 
+---------+----------+----------
+ 0       |        0 |        1
+ 1       |        1 |     2047
+ 2       |        2 |     3131
+ 3       |        3 |     3361
+ 4       |        4 |     7969
+ 5       |        5 |    18221
+ 6       |        6 |   102704
+ 7       |        7 |   274680
+ 8       |        8 |   313426
+ 9       |        9 |   406359
+ 10      |       10 |   448850
+ 11      |       11 |   445005
+ 12      |       12 |   432627
+ 13      |       13 |   560620
+ 14      |       14 |   434110
+ 15      |       15 |   562726
+ 16      |       16 |   831877
+ 17      |       17 |   682827
+ 18      |       18 |   499142
+ 19      |       19 |   303259
+ 20      |       20 |   183186
+ 21      |       21 |   134516
+ 22      |       22 |   133461
+ 23      |       23 |    50135
+ 24      |       24 |    20561
+ 25      |       25 |    10760
+ 26      |       26 |     4988
+ 27      |       27 |     2132
+ 28      |       28 |     1440
+ 29      |       29 |      438
+ 30      |       30 |       72
+ 30-39   |       31 |       88
+ 40-49   |       40 |       39
+ 50-59   |       50 |       27
+ 60-69   |       60 |       19
+ 70-79   |       70 |       10
+ 80-89   |       80 |       10
+ 90-99   |       90 |       10
+ 100-109 |      100 |       10
+ 110-119 |      110 |       10
+ 120-129 |      120 |       10
+ 130-139 |      130 |       10
+ 140-149 |      140 |       10
+ 150-159 |      150 |       10
+ 160-169 |      160 |       10
+ 170-179 |      170 |       10
+ 180-189 |      180 |       10
+ 190-199 |      190 |       10
+ 200-209 |      200 |        2
+
+
+== Longest roads to Philosophy
+                  title                   | clicks 
+------------------------------------------+--------
+ Gelasius                                 |    201
+ Gelasius_of_Nilopolis                    |    200
+ December_31_(Eastern_Orthodox_liturgics) |    199
+ December_30_(Eastern_Orthodox_liturgics) |    198
+ December_29_(Eastern_Orthodox_liturgics) |    197
+ December_28_(Eastern_Orthodox_liturgics) |    196
+ December_27_(Eastern_Orthodox_liturgics) |    195
+ December_26_(Eastern_Orthodox_liturgics) |    194
+ December_25_(Eastern_Orthodox_liturgics) |    193
+ December_24_(Eastern_Orthodox_liturgics) |    192
+
+
+== Where Philosophy itself leads (chain until a node repeats)
+                                                                              chain                                                                               
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Philosophy -> Ancient_Greek -> Greek_language -> Indo-European_languages -> Language_family -> Language -> Communication -> Information -> Abstract_and_concrete
+
+
+== Biggest dead ends (kind: red = link to a page that does not exist, none = page has no qualifying first link)
+                    dead_end                    | kind | articles_ending_here 
+------------------------------------------------+------+----------------------
+ Ecclesiastical                                 | none |                  504
+ Lunar_eclipse                                  | none |                  362
+ London,_Ontario                                | none |                  262
+ Exoteric                                       | none |                  170
+ Geo-cultural_region                            | red  |                  159
+ Gaumee_Film_Awards                             | none |                  112
+ Ancient_roman                                  | red  |                   76
+ Ecological_reserves_of_Quebec                  | none |                   71
+ Dignitary                                      | none |                   67
+ Mount_Baloy                                    | red  |                   48
+ Saída_do_Pessoal_Operário_da_Fábrica_Confiança | red  |                   47
+ Asia_Pacific_Screen_Academy                    | red  |                   41
+ Bimonthly                                      | none |                   40
+ Translation_of_gods                            | red  |                   38
+ Serial_entrepreneurship                        | none |                   37
+
+
+== Dead ends by kind
+ kind | dead_ends | articles_trapped 
+------+-----------+------------------
+ none |     22215 |            25585
+ red  |     28878 |            34212
+
+
+== Biggest cycles
+ articles | cycle_len |                              loop                               
+----------+-----------+-----------------------------------------------------------------
+    87539 |         2 | Mathematics -> Number_theory
+    45384 |         2 | Existence -> Reality
+    26725 |         1 | Publishing
+    12288 |         3 | Natural_resource -> Resource -> Non-renewable_resource
+    10713 |         2 | Art_music -> Classical_music
+     7499 |         2 | Amateur_sports -> Professional_sports
+     6302 |         2 | Autonomous_communities_of_Spain -> Political_divisions_of_Spain
+     5842 |         2 | Guernésiais -> Norman_language
+     5509 |         2 | Ski -> Skiing
+     3554 |         2 | History_of_Canadian_sports -> Sports_in_Canada
+
+===== stats-full strict  21:45:26
+Timing is off.
+
+################  rule = strict ( parenthesized, italicized and template links skipped )################
 SELECT 3736376
 CREATE INDEX
 
@@ -544,79 +1041,79 @@ CREATE INDEX
 
 
 == One click: first link is Philosophy, common-word titles that are not obviously philosophical (random 30)
-              title              
----------------------------------
- Awareness
- Aufheben
- Claim_rights_and_liberty_rights
- Passive_intellect
- Infinite_regress
- Panopticon
- Accidental_necessity
- Brainstorms
- Intentional_stance
- Choiceless_awareness
- Principle_of_charity
- Frankfurt_cases
- Facticity
+                    title                     
+----------------------------------------------
+ Liar_paradox
+ Relationship_between_mathematics_and_physics
+ Associative_economics
+ Abstract_and_concrete
  Whole_language
- Nomothetic
- Timeless_universe
+ Transmodernity
+ Leap_of_faith
  Ressentiment
- Erkenntnis
- Nous
- Henology
- Overbelief
- Canserbero
- Anguish
- Agile_construction
- Musica_universalis
- Composition_of_causes
- Ousia
- Pamprepius
- Hypothetical_imperative
+ Kindness
  Objective_precision
+ Salva_veritate
+ Condition_of_possibility
+ Mimpathy
+ Animal_rights
+ Potential_person
+ Qualification_problem
+ Constant_conjunction
+ Eternal_return
+ Bedeutung
+ First_principle
+ Awareness
+ Spiritual_intelligence
+ Ontopoetics
+ Munich_phenomenology
+ Euphraeus
+ Happiness_pump
+ Equipossibility
+ Principle_of_charity
+ Governmentality
+ Self
 
 
 == Two clicks, single common-word titles with their path (random 30)
                                   path                                  
 ------------------------------------------------------------------------
- Rule -> Norm_(philosophy) -> Philosophy
- Credibility -> Subjectivity_and_objectivity_(philosophy) -> Philosophy
- Holzamer -> Karl_Holzamer -> Philosophy
- Bottici -> Chiara_Bottici -> Philosophy
- Keshin -> Reincarnation -> Philosophy
- Querencia -> Metaphysics -> Philosophy
- Mably -> Gabriel_Bonnot_de_Mably -> Philosophy
- Ontotheology -> Ontology -> Philosophy
- Abano -> Pietro_d'Abano -> Philosophy
- Parable -> Didacticism -> Philosophy
- Ideosphere -> Noosphere -> Philosophy
- Weltalter -> Friedrich_Wilhelm_Joseph_Schelling -> Philosophy
- Palatability -> Hedonism -> Philosophy
- Zhenren -> Taoism -> Philosophy
- Wenzi -> Taoism -> Philosophy
- Sluga -> Hans_Sluga -> Philosophy
- Agathology -> Henology -> Philosophy
- Avens -> Henry_Corbin -> Philosophy
- Plumwood -> Val_Plumwood -> Philosophy
- Picturesque -> Aesthetics -> Philosophy
- Catius -> Epicureanism -> Philosophy
- Tao -> Eastern_philosophy -> Philosophy
- Katharineum -> Humanism -> Philosophy
- Picavet -> François_Picavet -> Philosophy
- Objective -> Subjectivity_and_objectivity_(philosophy) -> Philosophy
- Neidan -> Taoism -> Philosophy
- Monosemy -> Methodology -> Philosophy
+ Dajiao -> Taoism -> Philosophy
  Subject -> Subject_and_object_(philosophy) -> Philosophy
- Hareket -> Action_theory_(philosophy) -> Philosophy
- Bicchieri -> Cristina_Bicchieri -> Philosophy
+ Edel -> Abraham_Edel -> Philosophy
+ Sparagmos -> Apollonian_and_Dionysian -> Philosophy
+ Agathology -> Henology -> Philosophy
+ Mereology -> Ontology -> Philosophy
+ Tao -> Eastern_philosophy -> Philosophy
+ Prawitz -> Dag_Prawitz -> Philosophy
+ Whaddyado -> Ethical_dilemma -> Philosophy
+ Dustdar -> Aramesh_Dustdar -> Philosophy
+ Sittlichkeit -> Georg_Wilhelm_Friedrich_Hegel -> Philosophy
+ Taipingjing -> Taoism -> Philosophy
+ Nezha -> Taoism -> Philosophy
+ Katalepsis -> Stoicism -> Philosophy
+ Sciousness -> William_James -> Philosophy
+ Urooj -> Aroj_Ali_Matubbar -> Philosophy
+ Hermeneutics -> Methodology -> Philosophy
+ Hypokeimenon -> Metaphysics -> Philosophy
+ Abdal -> Islamic_philosophy -> Philosophy
+ Moby -> Animal_rights -> Philosophy
+ Demiurge -> Platonism -> Philosophy
+ Objectivity -> Subjectivity_and_objectivity_(philosophy) -> Philosophy
+ Brotherhood -> Fraternity_(philosophy) -> Philosophy
+ Hermarchus -> Epicureanism -> Philosophy
+ Anhedonia -> Hedonism -> Philosophy
+ Manner -> Methodology -> Philosophy
+ Crinis -> Stoicism -> Philosophy
+ Zallinger -> Jacob_Anton_Zallinger_zum_Thurn -> Philosophy
+ Commentaire -> Raymond_Aron -> Philosophy
+ Causality -> Event_(philosophy) -> Philosophy
 
 DROP TABLE
-===== stats-full paren  20:08:44
+===== stats-full parens_ok  21:45:28
 Timing is off.
 
-################  rule = paren ################
+################  rule = parens_ok ( italicized and template links skipped; parenthesized links count )################
 SELECT 6873334
 CREATE INDEX
 
@@ -676,46 +1173,46 @@ CREATE INDEX
 == Philosophy returns to itself in 9 clicks under this rule. Articles exactly that far from Philosophy (single common-word titles, random 40)
     title    | distance 
 -------------+----------
- Helanshania |        9
- Elophila    |        9
- Parambassis |        9
- Furcraea    |        9
- Oxynotus    |        9
- Phellodon   |        9
- Limbarda    |        9
- Dixophlebia |        9
- Eremarionta |        9
- Camelback   |        9
- Criscia     |        9
- Schodowski  |        9
- Lophomilia  |        9
- Hongshanxi  |        9
- Converse    |        9
- Xylogone    |        9
- Jil         |        9
- Poabromylus |        9
- Audata      |        9
- Macrodes    |        9
- Anabasine   |        9
- Cryptogemma |        9
- Tremataspis |        9
- Toromeryx   |        9
- Spreafico   |        9
- Ording      |        9
- Midajah     |        9
- Bioship     |        9
- Hoshimov    |        9
- Megu        |        9
- Maxera      |        9
- Monarda     |        9
- Ascophanus  |        9
- Maerdy      |        9
- Erucius     |        9
- Camouflage  |        9
- Lastarria   |        9
- Spinosaurus |        9
- Tungsenia   |        9
- Silvateam   |        9
+ Innara      |        9
+ Botria      |        9
+ Kangaraneus |        9
+ Euphorbia   |        9
+ Davana      |        9
+ Iberodon    |        9
+ Hackerville |        9
+ Serradraco  |        9
+ Hemitrullus |        9
+ Lobetani    |        9
+ Dicarpella  |        9
+ Pocota      |        9
+ Rove        |        9
+ Velazconia  |        9
+ Zeliangrong |        9
+ Diamecyna   |        9
+ Cochliotis  |        9
+ Sicaricon   |        9
+ Sagittunio  |        9
+ Pozomys     |        9
+ Caledanapis |        9
+ Mastoides   |        9
+ Nothodiplax |        9
+ Kalaitzakis |        9
+ Elantas     |        9
+ Latobici    |        9
+ Hemibrycon  |        9
+ Eocarcharia |        9
+ Lampre      |        9
+ Coptosperma |        9
+ Stenocosmia |        9
+ Rhabdolona  |        9
+ Eucrypta    |        9
+ Ctenus      |        9
+ Hexylamine  |        9
+ Titanokorys |        9
+ Phyllomya   |        9
+ Vittina     |        9
+ Chloroplus  |        9
+ Biatoropsis |        9
 
 
 == Farthest chain heads (no other article links into them)
@@ -772,72 +1269,709 @@ CREATE INDEX
 
 
 == One click: first link is Philosophy, common-word titles that are not obviously philosophical (random 30)
-            title            
------------------------------
- Padmapadacharya
- Intelligible_form
- Qualification_problem
- Brainstorms
- Spiritual_intelligence
- Objective_precision
- Nous
- Aufheben
- Personhood
- Porphyrian_tree
- Chevengur
- Metempsychosis
- Infinite_divisibility
- Transcendental_apperception
- Choiceless_awareness
- Theophysics
- Mimpathy
- Awareness
- Lourdes_effect
- Intentional_stance
+                    title                     
+----------------------------------------------
+ Theophrastus
+ Moral_responsibility
+ Agile_construction
+ Musica_universalis
  Paradox_of_fiction
- Ontopoetics
- Proving_too_much
- Moral_compass
- Ousia
- Immanent_evaluation
- Canserbero
- Associative_economics
+ Bedeutung
+ Grouped_events
+ Aedesia
  Supervenience
- Unity_of_opposites
+ Brainstorms
+ Reincarnation
+ Frankfurt_cases
+ Noumenon
+ Relationship_between_mathematics_and_physics
+ Il_problema_della_guerra_e_le_vie_della_pace
+ Innovation_leadership
+ Moral_compass
+ Practical_reason
+ White_paper
+ Environmental_hermeneutics
+ Happiness_pump
+ Abstract_and_concrete
+ Tunnel_problem
+ Evidential_existentiality
+ Accidental_necessity
+ Aporia
+ Euphraeus
+ Metempsychosis
+ Governmentality
+ Process_thinking
 
 
 == Two clicks, single common-word titles with their path (random 30)
-                        path                        
-----------------------------------------------------
- Hermeneutics -> Methodology -> Philosophy
- Formulation -> Abstract_and_concrete -> Philosophy
- Avens -> Henry_Corbin -> Philosophy
- Artmedia -> Aesthetics -> Philosophy
- Shingaku -> Ishida_Baigan -> Philosophy
- Manner -> Methodology -> Philosophy
- Notonagoro -> Pancasila -> Philosophy
- Commonwealth -> Common_good -> Philosophy
- Reincarnated -> Reincarnation -> Philosophy
- Activity -> Action_(philosophy) -> Philosophy
- Yinyanggong -> Taoism -> Philosophy
- Rationality -> Quality_(philosophy) -> Philosophy
- Bottici -> Chiara_Bottici -> Philosophy
- Lotze -> Hermann_Lotze -> Philosophy
- Hakirah -> Jewish_philosophy -> Philosophy
- Daojiao -> Taoism -> Philosophy
- Commentaire -> Raymond_Aron -> Philosophy
- Hume -> David_Hume -> Philosophy
- Evandro -> Evandro_Agazzi -> Philosophy
- Levinas -> Emmanuel_Levinas -> Philosophy
- Ibbur -> Reincarnation -> Philosophy
- Buber -> Martin_Buber -> Philosophy
+                                 path                                 
+----------------------------------------------------------------------
+ Pujante -> José_Antonio_Pujante -> Philosophy
  Metaxy -> Platonism -> Philosophy
- Oncken -> Arthur_Oncken_Lovejoy -> Philosophy
- Apatheia -> Stoicism -> Philosophy
- Loewer -> Barry_Loewer -> Philosophy
- Zhenren -> Taoism -> Philosophy
- Keshin -> Reincarnation -> Philosophy
- Mimesis -> Aesthetics -> Philosophy
- Shanrendao -> Taoism -> Philosophy
+ Sundo -> Taoism -> Philosophy
+ Abano -> Pietro_d'Abano -> Philosophy
+ Harmolodics -> Philosophy_of_music -> Philosophy
+ Rationality -> Quality_(philosophy) -> Philosophy
+ Ideosphere -> Noosphere -> Philosophy
+ Whaddyado -> Ethical_dilemma -> Philosophy
+ Equanimal -> Animal_rights -> Philosophy
+ Certainty -> Epistemology -> Philosophy
+ Zhizha -> Taoism -> Philosophy
+ Commentaire -> Raymond_Aron -> Philosophy
+ Objective -> Subjectivity_and_objectivity_(philosophy) -> Philosophy
+ Katharineum -> Humanism -> Philosophy
+ Artmedia -> Aesthetics -> Philosophy
+ Prohairesis -> Stoicism -> Philosophy
+ Gellner -> Ernest_Gellner -> Philosophy
+ Dercyllides -> Platonism -> Philosophy
+ Huashu -> Taoism -> Philosophy
+ Currere -> Postmodern_philosophy -> Philosophy
+ Erasmus -> Humanism -> Philosophy
+ Cyrenaics -> Hedonism -> Philosophy
+ Thomasius -> Jakob_Thomasius -> Philosophy
+ Yubu -> Taoism -> Philosophy
+ Amafinius -> Epicureanism -> Philosophy
+ Formulation -> Abstract_and_concrete -> Philosophy
+ Palatability -> Hedonism -> Philosophy
+ Infosphere -> Metaphysics -> Philosophy
+ Evandro -> Evandro_Agazzi -> Philosophy
+ Destiny -> Predeterminism -> Philosophy
+
+DROP TABLE
+===== stats-full skip_parens  21:45:34
+Timing is off.
+
+################  rule = skip_parens ( only parenthesized links skipped )################
+SELECT 568531
+CREATE INDEX
+
+== Cumulative share of articles within N clicks of Philosophy
+ within_clicks | at_this_distance | cumulative | pct_of_all_articles | pct_of_those_reaching 
+---------------+------------------+------------+---------------------+-----------------------
+             0 |                1 |          1 |                0.00 |                  0.00
+             1 |             1282 |       1283 |                0.02 |                  0.23
+             2 |             3417 |       4700 |                0.06 |                  0.83
+             3 |             3853 |       8553 |                0.12 |                  1.50
+             4 |             3363 |      11916 |                0.16 |                  2.10
+             5 |             5185 |      17101 |                0.24 |                  3.01
+             6 |            29467 |      46568 |                0.64 |                  8.19
+             7 |            72555 |     119123 |                1.64 |                 20.95
+             8 |            56442 |     175565 |                2.42 |                 30.88
+             9 |            39015 |     214580 |                2.96 |                 37.74
+            10 |            25154 |     239734 |                3.31 |                 42.17
+            11 |            19523 |     259257 |                3.58 |                 45.60
+            12 |            19074 |     278331 |                3.84 |                 48.96
+            13 |            11774 |     290105 |                4.00 |                 51.03
+            14 |            14044 |     304149 |                4.20 |                 53.50
+            15 |            16164 |     320313 |                4.42 |                 56.34
+            16 |            12996 |     333309 |                4.60 |                 58.63
+            17 |            30393 |     363702 |                5.02 |                 63.97
+            18 |            16158 |     379860 |                5.24 |                 66.81
+            19 |            55043 |     434903 |                6.00 |                 76.50
+            20 |            50388 |     485291 |                6.69 |                 85.36
+            21 |            19465 |     504756 |                6.96 |                 88.78
+            22 |            34152 |     538908 |                7.43 |                 94.79
+            23 |            14265 |     553173 |                7.63 |                 97.30
+            24 |             8040 |     561213 |                7.74 |                 98.71
+            25 |             3753 |     564966 |                7.79 |                 99.37
+            26 |             1517 |     566483 |                7.81 |                 99.64
+            27 |             1256 |     567739 |                7.83 |                 99.86
+            28 |              307 |     568046 |                7.84 |                 99.91
+            29 |              284 |     568330 |                7.84 |                 99.96
+            30 |              123 |     568453 |                7.84 |                 99.99
+            31 |               38 |     568491 |                7.84 |                 99.99
+            32 |               11 |     568502 |                7.84 |                 99.99
+            33 |                8 |     568510 |                7.84 |                100.00
+            34 |                6 |     568516 |                7.84 |                100.00
+
+
+== Clicks needed to reach Philosophy, by share of articles (blank = never)
+ % of articles | clicks, all articles | clicks, those reaching 
+---------------+----------------------+------------------------
+            10 |                      |                      7
+            25 |                      |                      8
+            35 |                      |                      9
+            50 |                      |                     13
+            75 |                      |                     19
+            90 |                      |                     22
+            95 |                      |                     23
+            99 |                      |                     25
+
+
+== Farthest chain heads (no other article links into them)
+                  title                   | distance 
+------------------------------------------+----------
+ 2025–26_CAF_Champions_League_group_stage |       45
+ 1978–79_Tercera_División                 |       38
+ 1998_Georgia_Secretary_of_State_election |       34
+ 2026–27_Northern_Football_League         |       34
+ Brooks_Coleman                           |       34
+ Cathy_Cox                                |       34
+ 2026_Beninese_parliamentary_election     |       33
+ Kathy_Cox                                |       33
+ Martin_Scott                             |       33
+ 2005_Brisbane_Broncos_season             |       32
+
+
+== Farthest chain heads outside the single-file tail (distances still shared by 10+ articles)
+                 title                 | distance 
+---------------------------------------+----------
+ 2005_Brisbane_Broncos_season          |       32
+ Dan_Lakly                             |       32
+ Donna_McLeod                          |       32
+ Jonathan_Wallace_(Georgia_politician) |       32
+ 95th_State_House_District             |       31
+ Alberta_Anderson                      |       31
+ Allen_Peake                           |       31
+ Beth_Moore_(politician)               |       31
+ Bubber_Epps                           |       31
+ Carol_Fullerton                       |       31
+
+
+== Single-file tails: chains that own the far distances, and where they rejoin the crowd
+                   head                   | head_distance | pages_in_single_file |              midpoint_page               |           rejoins_crowd_at            | crowd_distance 
+------------------------------------------+---------------+----------------------+------------------------------------------+---------------------------------------+----------------
+ 2025–26_CAF_Champions_League_group_stage |            45 |                   13 | 2020–21_CAF_Champions_League_group_stage | 2013_CAF_Champions_League_group_stage |             32
+ 1978–79_Tercera_División                 |            38 |                    6 | 1976–77_Tercera_División                 | 1972–73_Tercera_División              |             32
+ 2026–27_Northern_Football_League         |            34 |                    2 | 2026–27_Northern_Football_League         | 2024–25_Northern_Football_League      |             32
+ 1998_Georgia_Secretary_of_State_election |            34 |                    2 | 1998_Georgia_Secretary_of_State_election | Kathy_Cox_(American_politician)       |             32
+ Brooks_Coleman                           |            34 |                    2 | Brooks_Coleman                           | Long_Tran                             |             32
+ Cathy_Cox                                |            34 |                    2 | Cathy_Cox                                | Kathy_Cox_(American_politician)       |             32
+ Martin_Scott                             |            33 |                    1 |                                          | Martin_Scott_(politician)             |             32
+ 2026_Beninese_parliamentary_election     |            33 |                    1 |                                          | 2023_Beninese_parliamentary_election  |             32
+ Kathy_Cox                                |            33 |                    1 |                                          | Kathy_Cox_(American_politician)       |             32
+
+
+== Counts at 1, 2, 3 clicks
+ distance | count 
+----------+-------
+        1 |  1282
+        2 |  3417
+        3 |  3853
+
+
+== One click: first link is Philosophy, common-word titles that are not obviously philosophical (random 30)
+                    title                     
+----------------------------------------------
+ Anguish
+ Claim_rights_and_liberty_rights
+ Noumenon
+ Filozofski_vestnik
+ Intelligible_form
+ Quaestio
+ Transmodernity
+ Moral_compass
+ Supervenience
+ Governmentality
+ Unity_of_opposites
+ Hypothetical_imperative
+ Potentiality_and_actuality
+ Transpersonal
+ Kriterion
+ Embodied_embedded_cognition
+ Objective_precision
+ Euphraeus
+ Noosphere
+ Choiceless_awareness
+ Panthoides
+ Lourdes_effect
+ Acatalepsy
+ Personhood
+ World
+ Process_thinking
+ Relationship_between_mathematics_and_physics
+ Chrysanthius
+ Verisimilitude
+ Practical_reason
+
+
+== Two clicks, single common-word titles with their path (random 30)
+                                  path                                  
+------------------------------------------------------------------------
+ Speusippus -> Western_philosophy -> Philosophy
+ Currere -> Postmodern_philosophy -> Philosophy
+ Harmolodics -> Philosophy_of_music -> Philosophy
+ Manner -> Methodology -> Philosophy
+ Cyrenaics -> Hedonism -> Philosophy
+ Sociogeny -> Ontology -> Philosophy
+ Commonwealth -> Common_good -> Philosophy
+ Iamblichus -> Western_philosophy -> Philosophy
+ Palingenesis -> Reincarnation -> Philosophy
+ Creal -> Luis_de_Miranda -> Philosophy
+ Montesquieu -> Western_philosophy -> Philosophy
+ Whaddyado -> Ethical_dilemma -> Philosophy
+ Dianoia -> Platonism -> Philosophy
+ Posidonius -> Western_philosophy -> Philosophy
+ Dercyllides -> Platonism -> Philosophy
+ Tussman -> Joseph_Tussman -> Philosophy
+ Incorrigible -> Incorrigibility -> Philosophy
+ Objective -> Subjectivity_and_objectivity_(philosophy) -> Philosophy
+ Demiurge -> Platonism -> Philosophy
+ Antisthenes -> Western_philosophy -> Philosophy
+ Formulation -> Abstract_and_concrete -> Philosophy
+ Fablok -> World -> Philosophy
+ Ensoulment -> Ancient_philosophy -> Philosophy
+ Theophrastus -> Western_philosophy -> Philosophy
+ Prohairesis -> Stoicism -> Philosophy
+ Aristanax -> Platonism -> Philosophy
+ Taius -> Western_philosophy -> Philosophy
+ Rationality -> Quality_(philosophy) -> Philosophy
+ Biocomplexity -> Emergence -> Philosophy
+ Objectivity -> Subjectivity_and_objectivity_(philosophy) -> Philosophy
+
+DROP TABLE
+===== stats-full skip_italics  21:45:35
+Timing is off.
+
+################  rule = skip_italics ( only italicized links skipped )################
+SELECT 1193401
+CREATE INDEX
+
+== Cumulative share of articles within N clicks of Philosophy
+ within_clicks | at_this_distance | cumulative | pct_of_all_articles | pct_of_those_reaching 
+---------------+------------------+------------+---------------------+-----------------------
+             0 |                1 |          1 |                0.00 |                  0.00
+             1 |             1131 |       1132 |                0.02 |                  0.09
+             2 |             3337 |       4469 |                0.06 |                  0.37
+             3 |             3756 |       8225 |                0.11 |                  0.69
+             4 |             3294 |      11519 |                0.16 |                  0.97
+             5 |             6741 |      18260 |                0.25 |                  1.53
+             6 |            42415 |      60675 |                0.84 |                  5.08
+             7 |            86052 |     146727 |                2.02 |                 12.29
+             8 |            81069 |     227796 |                3.14 |                 19.09
+             9 |            77965 |     305761 |                4.22 |                 25.62
+            10 |            75123 |     380884 |                5.25 |                 31.92
+            11 |            55883 |     436767 |                6.03 |                 36.60
+            12 |            77468 |     514235 |                7.09 |                 43.09
+            13 |            52332 |     566567 |                7.82 |                 47.47
+            14 |            39119 |     605686 |                8.36 |                 50.75
+            15 |            31832 |     637518 |                8.79 |                 53.42
+            16 |            46694 |     684212 |                9.44 |                 57.33
+            17 |            52920 |     737132 |               10.17 |                 61.77
+            18 |            70118 |     807250 |               11.14 |                 67.64
+            19 |            84899 |     892149 |               12.31 |                 74.76
+            20 |            66557 |     958706 |               13.23 |                 80.33
+            21 |            46180 |    1004886 |               13.86 |                 84.20
+            22 |            58426 |    1063312 |               14.67 |                 89.10
+            23 |            35722 |    1099034 |               15.16 |                 92.09
+            24 |            30395 |    1129429 |               15.58 |                 94.64
+            25 |            22798 |    1152227 |               15.89 |                 96.55
+            26 |            14516 |    1166743 |               16.10 |                 97.77
+            27 |             7829 |    1174572 |               16.20 |                 98.42
+            28 |             6560 |    1181132 |               16.29 |                 98.97
+            29 |             4191 |    1185323 |               16.35 |                 99.32
+            30 |             3336 |    1188659 |               16.40 |                 99.60
+            31 |             1636 |    1190295 |               16.42 |                 99.74
+            32 |              648 |    1190943 |               16.43 |                 99.79
+            33 |              714 |    1191657 |               16.44 |                 99.85
+            34 |              864 |    1192521 |               16.45 |                 99.93
+
+
+== Clicks needed to reach Philosophy, by share of articles (blank = never)
+ % of articles | clicks, all articles | clicks, those reaching 
+---------------+----------------------+------------------------
+            10 |                   17 |                      7
+            25 |                      |                      9
+            35 |                      |                     11
+            50 |                      |                     14
+            75 |                      |                     20
+            90 |                      |                     23
+            95 |                      |                     25
+            99 |                      |                     29
+
+
+== Philosophy returns to itself in 16 clicks under this rule. Articles exactly that far from Philosophy (single common-word titles, random 40)
+    title    | distance 
+-------------+----------
+ Leisurecorp |       16
+ Incensole   |       16
+ Paragraph   |       16
+ Bioneers    |       16
+ Tigervision |       16
+ Ilparpa     |       16
+ Jyoshna     |       16
+ Ozerne      |       16
+ Ole         |       16
+ Hydrosol    |       16
+ Lapidus     |       16
+ Mereology   |       16
+ Ethogenics  |       16
+ Atommash    |       16
+ Silverite   |       16
+ Courtaulds  |       16
+ Ardiaei     |       16
+ Orienticius |       16
+ Nuotio      |       16
+ Heghine     |       16
+ Smikros     |       16
+ Ancaeus     |       16
+ American    |       16
+ Potnia      |       16
+ Aerobiology |       16
+ Sulloniacis |       16
+ Pershyi     |       16
+ Synej       |       16
+ Podhorce    |       16
+ Ramak       |       16
+ Oleo        |       16
+ Crilanomer  |       16
+ Sparatocos  |       16
+ Hardinsburg |       16
+ Drayford    |       16
+ Katechon    |       16
+ Chichilaki  |       16
+ Dialcom     |       16
+ Stavyshche  |       16
+ Elarji      |       16
+
+
+== Farthest chain heads (no other article links into them)
+                           title                           | distance 
+-----------------------------------------------------------+----------
+ 2003_World_Table_Tennis_Championships_–_Men's_doubles     |       55
+ 2003_World_Table_Tennis_Championships_–_Men's_singles     |       55
+ 2003_World_Table_Tennis_Championships_–_Women's_doubles   |       55
+ 2003_World_Table_Tennis_Championships_–_Women's_singles   |       55
+ 2004_World_Team_Table_Tennis_Championships_–_Men's_team   |       55
+ 2004_World_Team_Table_Tennis_Championships_–_Women's_team |       55
+ 1921_WAFL_season                                          |       46
+ 1985_World_Table_Tennis_Championships_–_Mixed_doubles     |       46
+ 2025–26_CAF_Champions_League_group_stage                  |       45
+ 2016_Solihull_Metropolitan_Borough_Council_election       |       42
+
+
+== Farthest chain heads outside the single-file tail (distances still shared by 10+ articles)
+                         title                         | distance 
+-------------------------------------------------------+----------
+ 2016_Solihull_Metropolitan_Borough_Council_election   |       42
+ 1889_Scottish_Cup_final                               |       40
+ 1889–90_Scottish_Cup                                  |       40
+ 1962_All_England_Badminton_Championships              |       40
+ 1980_All_England_Open_Badminton_Championships         |       40
+ 1888_Scottish_Cup_final                               |       39
+ Wank                                                  |       39
+ 1887_Scottish_Cup_final                               |       38
+ 1947–48_Bemidji_State_Beavers_men's_ice_hockey_season |       38
+ 2019–20_Bemidji_State_Beavers_men's_ice_hockey_season |       38
+
+
+== Single-file tails: chains that own the far distances, and where they rejoin the crowd
+                           head                            | head_distance | pages_in_single_file |                      midpoint_page                      |                    rejoins_crowd_at                     | crowd_distance 
+-----------------------------------------------------------+---------------+----------------------+---------------------------------------------------------+---------------------------------------------------------+----------------
+ 2004_World_Team_Table_Tennis_Championships_–_Men's_team   |            55 |                   13 | 1993_World_Table_Tennis_Championships_–_Men's_team      | 1977_World_Table_Tennis_Championships_–_Men's_team      |             42
+ 2004_World_Team_Table_Tennis_Championships_–_Women's_team |            55 |                   13 | 1993_World_Table_Tennis_Championships_–_Women's_team    | 1977_World_Table_Tennis_Championships_–_Women's_team    |             42
+ 2003_World_Table_Tennis_Championships_–_Men's_doubles     |            55 |                   13 | 1993_World_Table_Tennis_Championships_–_Men's_doubles   | 1977_World_Table_Tennis_Championships_–_Men's_doubles   |             42
+ 2003_World_Table_Tennis_Championships_–_Men's_singles     |            55 |                   13 | 1993_World_Table_Tennis_Championships_–_Men's_singles   | 1977_World_Table_Tennis_Championships_–_Men's_singles   |             42
+ 2003_World_Table_Tennis_Championships_–_Women's_doubles   |            55 |                   13 | 1993_World_Table_Tennis_Championships_–_Women's_doubles | 1977_World_Table_Tennis_Championships_–_Women's_doubles |             42
+ 2003_World_Table_Tennis_Championships_–_Women's_singles   |            55 |                   13 | 1993_World_Table_Tennis_Championships_–_Women's_singles | 1977_World_Table_Tennis_Championships_–_Women's_singles |             42
+ 1921_WAFL_season                                          |            46 |                    4 | 1920_WAFL_season                                        | 1917_WAFL_season                                        |             42
+ 1985_World_Table_Tennis_Championships_–_Mixed_doubles     |            46 |                    4 | 1983_World_Table_Tennis_Championships_–_Mixed_doubles   | 1977_World_Table_Tennis_Championships_–_Mixed_doubles   |             42
+ 2025–26_CAF_Champions_League_group_stage                  |            45 |                    3 | 2025–26_CAF_Champions_League_group_stage                | 2022–23_CAF_Champions_League_group_stage                |             42
+
+
+== Counts at 1, 2, 3 clicks
+ distance | count 
+----------+-------
+        1 |  1131
+        2 |  3337
+        3 |  3756
+
+
+== One click: first link is Philosophy, common-word titles that are not obviously philosophical (random 30)
+            title            
+-----------------------------
+ Transcendental_homelessness
+ Abstract_and_concrete
+ Immanent_evaluation
+ Mimpathy
+ Supervenience
+ Range_property
+ Intentional_stance
+ Qualification_problem
+ Spiritual_intelligence
+ Pancasila
+ White_paper
+ Evidential_existentiality
+ Synthese
+ Deconstruction
+ Augustiniana
+ Disputatio
+ Eternal_return
+ Tunnel_problem
+ Principle_of_humanity
+ Henology
+ Nous
+ Gnosiology
+ Whole_language
+ Innovation_leadership
+ Common_good
+ Reincarnation
+ Metempsychosis
+ Filozofski_vestnik
+ Process_thinking
+ Mediocrity_principle
+
+
+== Two clicks, single common-word titles with their path (random 30)
+                          path                          
+--------------------------------------------------------
+ Infosphere -> Metaphysics -> Philosophy
+ Parable -> Didacticism -> Philosophy
+ Worldwide -> World -> Philosophy
+ Cleanthes -> Western_philosophy -> Philosophy
+ Heraclitus -> Western_philosophy -> Philosophy
+ Picturesque -> Aesthetics -> Philosophy
+ Epistle -> Didacticism -> Philosophy
+ Thing -> Subject_and_object_(philosophy) -> Philosophy
+ Licking -> Action_(philosophy) -> Philosophy
+ Katalepsis -> Stoicism -> Philosophy
+ Mandle -> Jon_Mandle -> Philosophy
+ Alethiology -> Aletheia -> Philosophy
+ Xenophanes -> Western_philosophy -> Philosophy
+ Archai -> First_principle -> Philosophy
+ Fablok -> World -> Philosophy
+ Samvara -> Ontology -> Philosophy
+ Celso -> Celsus -> Philosophy
+ Aristocreon -> Stoicism -> Philosophy
+ Yerkish -> Ernst_von_Glasersfeld -> Philosophy
+ Biofeedback -> Awareness -> Philosophy
+ Information -> Abstract_and_concrete -> Philosophy
+ Paracelsus -> Western_philosophy -> Philosophy
+ Creal -> Luis_de_Miranda -> Philosophy
+ Certainty -> Epistemology -> Philosophy
+ Epictetus -> Western_philosophy -> Philosophy
+ Regress -> Infinite_regress -> Philosophy
+ Antisthenes -> Western_philosophy -> Philosophy
+ Palatability -> Hedonism -> Philosophy
+ Vorstellung -> Epistemology -> Philosophy
+ Saudosismo -> Aesthetics -> Philosophy
+
+DROP TABLE
+===== stats-full loose  21:45:36
+Timing is off.
+
+################  rule = loose ( only template links skipped (the loose rule) )################
+SELECT 6874936
+CREATE INDEX
+
+== Cumulative share of articles within N clicks of Philosophy
+ within_clicks | at_this_distance | cumulative | pct_of_all_articles | pct_of_those_reaching 
+---------------+------------------+------------+---------------------+-----------------------
+             0 |                1 |          1 |                0.00 |                  0.00
+             1 |             2047 |       2048 |                0.03 |                  0.03
+             2 |             3131 |       5179 |                0.07 |                  0.08
+             3 |             3361 |       8540 |                0.12 |                  0.12
+             4 |             7969 |      16509 |                0.23 |                  0.24
+             5 |            18221 |      34730 |                0.48 |                  0.51
+             6 |           102704 |     137434 |                1.90 |                  2.00
+             7 |           274680 |     412114 |                5.69 |                  5.99
+             8 |           313426 |     725540 |               10.01 |                 10.55
+             9 |           406359 |    1131899 |               15.61 |                 16.46
+            10 |           448850 |    1580749 |               21.81 |                 22.99
+            11 |           445005 |    2025754 |               27.94 |                 29.47
+            12 |           432627 |    2458381 |               33.91 |                 35.76
+            13 |           560620 |    3019001 |               41.65 |                 43.91
+            14 |           434110 |    3453111 |               47.64 |                 50.23
+            15 |           562726 |    4015837 |               55.40 |                 58.41
+            16 |           831877 |    4847714 |               66.87 |                 70.51
+            17 |           682827 |    5530541 |               76.29 |                 80.44
+            18 |           499142 |    6029683 |               83.18 |                 87.71
+            19 |           303259 |    6332942 |               87.36 |                 92.12
+            20 |           183186 |    6516128 |               89.89 |                 94.78
+            21 |           134516 |    6650644 |               91.74 |                 96.74
+            22 |           133461 |    6784105 |               93.59 |                 98.68
+            23 |            50135 |    6834240 |               94.28 |                 99.41
+            24 |            20561 |    6854801 |               94.56 |                 99.71
+            25 |            10760 |    6865561 |               94.71 |                 99.86
+            26 |             4988 |    6870549 |               94.78 |                 99.94
+            27 |             2132 |    6872681 |               94.81 |                 99.97
+            28 |             1440 |    6874121 |               94.83 |                 99.99
+            29 |              438 |    6874559 |               94.83 |                 99.99
+            30 |               72 |    6874631 |               94.83 |                100.00
+            31 |               18 |    6874649 |               94.83 |                100.00
+            32 |               11 |    6874660 |               94.83 |                100.00
+            33 |               10 |    6874670 |               94.83 |                100.00
+            34 |               11 |    6874681 |               94.83 |                100.00
+
+
+== Clicks needed to reach Philosophy, by share of articles (blank = never)
+ % of articles | clicks, all articles | clicks, those reaching 
+---------------+----------------------+------------------------
+            10 |                    8 |                      8
+            25 |                   11 |                     11
+            35 |                   13 |                     12
+            50 |                   15 |                     14
+            75 |                   17 |                     17
+            90 |                   21 |                     19
+            95 |                      |                     21
+            99 |                      |                     23
+
+
+== Philosophy returns to itself in 9 clicks under this rule. Articles exactly that far from Philosophy (single common-word titles, random 40)
+    title    | distance 
+-------------+----------
+ Temnoscelis |        9
+ Jellyella   |        9
+ Bubble      |        9
+ Hesitation  |        9
+ Daviesa     |        9
+ Pareuchelus |        9
+ Entypesa    |        9
+ Matzor      |        9
+ Hylaeamys   |        9
+ Helichrysum |        9
+ Godinotia   |        9
+ Carinomitra |        9
+ Pommerhelix |        9
+ Sekaliporus |        9
+ Scelophysa  |        9
+ Olca        |        9
+ Bilophila   |        9
+ Cyclopera   |        9
+ Hellyeah    |        9
+ Falacer     |        9
+ Quensel     |        9
+ Etaxalus    |        9
+ Xenomerius  |        9
+ Karutia     |        9
+ Oenomys     |        9
+ Katona      |        9
+ Porhydrus   |        9
+ Mefenacet   |        9
+ Zagrotes    |        9
+ Tisnaren    |        9
+ Parula      |        9
+ Agnoderus   |        9
+ Prolita     |        9
+ Antemus     |        9
+ Hybomyia    |        9
+ Spilotes    |        9
+ Aburasoba   |        9
+ Onigocia    |        9
+ Utharomyces |        9
+ Geiselbach  |        9
+
+
+== Farthest chain heads (no other article links into them)
+          title          | distance 
+-------------------------+----------
+ Gelasius                |      201
+ Jōkyū                   |       66
+ Emperor_Juntoku         |       64
+ Kennin_(disambiguation) |       61
+ Miyagishima             |       58
+ Battle_of_Yahagi-gawa   |       55
+ Battle_of_Kanasa_Castle |       54
+ Jisho                   |       54
+ Siege_of_Nara           |       54
+ Enchō                   |       50
+
+
+== Farthest chain heads outside the single-file tail (distances still shared by 10+ articles)
+       title       | distance 
+-------------------+----------
+ Bunmei            |       35
+ Daiji             |       35
+ Eishō             |       35
+ Eochaid_Gonnat    |       35
+ Onin              |       35
+ 文正              |       34
+ Énna_Aignech      |       34
+ Conall_Collamrach |       33
+ BISP              |       32
+ Kanshō_famine     |       32
+
+
+== Single-file tails: chains that own the far distances, and where they rejoin the crowd
+          head           | head_distance | pages_in_single_file |              midpoint_page              |           rejoins_crowd_at           | crowd_distance 
+-------------------------+---------------+----------------------+-----------------------------------------+--------------------------------------+----------------
+ Gelasius                |           201 |                  166 | October_12_(Eastern_Orthodox_liturgics) | July_20_(Eastern_Orthodox_liturgics) |             35
+ Jōkyū                   |            66 |                   31 | Angen                                   | Tenshō_(Heian_period)                |             35
+ Emperor_Juntoku         |            64 |                   29 | Jōan_(era)                              | Tenshō_(Heian_period)                |             35
+ Kennin_(disambiguation) |            61 |                   26 | Nin'an                                  | Tenshō_(Heian_period)                |             35
+ Miyagishima             |            58 |                   23 | Eiman                                   | Tenshō_(Heian_period)                |             35
+ Battle_of_Yahagi-gawa   |            55 |                   20 | Ōhō                                     | Tenshō_(Heian_period)                |             35
+ Jisho                   |            54 |                   19 | Ōhō                                     | Tenshō_(Heian_period)                |             35
+ Battle_of_Kanasa_Castle |            54 |                   19 | Ōhō                                     | Tenshō_(Heian_period)                |             35
+ Siege_of_Nara           |            54 |                   19 | Ōhō                                     | Tenshō_(Heian_period)                |             35
+ Enchō                   |            50 |                   15 | Jōgan                                   | Enryaku                              |             35
+
+
+== Counts at 1, 2, 3 clicks
+ distance | count 
+----------+-------
+        1 |  2047
+        2 |  3131
+        3 |  3361
+
+
+== One click: first link is Philosophy, common-word titles that are not obviously philosophical (random 30)
+            title            
+-----------------------------
+ Liar_paradox
+ Holocentric
+ Nomology
+ Qualification_problem
+ Aletheia
+ Principle_of_humanity
+ Evidential_existentiality
+ Embodied_embedded_cognition
+ Incorrigibility
+ Environmental_hermeneutics
+ Verisimilitude
+ Invisible_labor
+ Denotation
+ Potentiality_and_actuality
+ Common_good
+ Mimpathy
+ Potential_person
+ Alterity
+ Nomothetic
+ Choiceless_awareness
+ Practical_reason
+ Original_position
+ Temporality
+ Objective_precision
+ Frankfurt_cases
+ Chevengur
+ Condition_of_possibility
+ Paradox_of_fiction
+ Transcendent_theosophy
+ Moral_responsibility
+
+
+== Two clicks, single common-word titles with their path (random 30)
+                             path                              
+---------------------------------------------------------------
+ Taipingjing -> Taoism -> Philosophy
+ Impossibility -> Epistemic_possibility -> Philosophy
+ Anapel -> Reincarnation -> Philosophy
+ Vorstellung -> Epistemology -> Philosophy
+ Noos -> Nous -> Philosophy
+ Wenzi -> Taoism -> Philosophy
+ Punarjanma -> Reincarnation -> Philosophy
+ Kind -> Kindness -> Philosophy
+ Anavastha -> Infinite_regress -> Philosophy
+ Vanitas -> Temporality -> Philosophy
+ Psychedelia -> Aesthetics -> Philosophy
+ Gassendi -> Pierre_Gassendi -> Philosophy
+ Erasmus -> Humanism -> Philosophy
+ Atonement -> Action_(philosophy) -> Philosophy
+ Hume -> David_Hume -> Philosophy
+ Katalepsis -> Stoicism -> Philosophy
+ Tussman -> Joseph_Tussman -> Philosophy
+ Qalb -> Islamic_philosophy -> Philosophy
+ Vallega -> Alejandro_Vallega -> Philosophy
+ Cyrenaics -> Hedonism -> Philosophy
+ Noesis -> Nous -> Philosophy
+ Massumi -> Brian_Massumi -> Philosophy
+ Megill -> Kenneth_Megill -> Philosophy
+ Schelling -> Friedrich_Wilhelm_Joseph_Schelling -> Philosophy
+ Antipathy -> Subject_and_object_(philosophy) -> Philosophy
+ Huashu -> Taoism -> Philosophy
+ Unshrinking -> Kate_Manne -> Philosophy
+ Nezha -> Taoism -> Philosophy
+ Desboulmiers -> David_Hume -> Philosophy
+ Palatability -> Hedonism -> Philosophy
 
 DROP TABLE

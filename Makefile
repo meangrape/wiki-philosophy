@@ -28,7 +28,7 @@ BIN   := target/release/wiki-philosophy
 CSV   := wiki_edges.csv
 LOG   := run.log
 ST    := .stamps
-RULES := strict paren
+RULES := strict parens_ok skip_parens skip_italics loose
 
 .PHONY: all build parse load topology articles report compare stats stats-full pdf docs clean distclean
 
@@ -51,7 +51,7 @@ $(ST)/load: $(CSV) sql/01_load.sql | $(ST)
 	touch $@
 
 topology: $(RULES:%=$(ST)/topology-%)
-$(ST)/topology-%: $(ST)/load sql/02_topology.sql
+$(ST)/topology-%: $(ST)/load sql/02_topology.sql sql/rule_vars.sql
 	@printf '===== topology %s  %s\n' "$*" "$$(date +%T)" | tee -a $(LOG)
 	$(PSQL) -v rule=$* -f sql/02_topology.sql 2>&1 | tee -a $(LOG)
 	touch $@
@@ -85,7 +85,7 @@ stats-full: articles
 pdf: philosophy.pdf
 # Runs psql directly rather than recursing into make: a sub-make re-evaluates
 # dependencies, so an edit to a SQL file mid-run would restart the load here.
-philosophy.txt: $(ST)/articles sql/03_report.sql sql/04_compare.sql sql/05_stats.sql sql/06_summary.sql sql/06_summary_rule.sql
+philosophy.txt: $(ST)/articles sql/03_report.sql sql/04_compare.sql sql/05_stats.sql sql/06_summary.sql sql/06_summary_rule.sql sql/rule_vars.sql
 	@printf '===== docs  %s\n' "$$(date +%T)" | tee -a $(LOG)
 	{ printf '===== stats  %s\n' "$$(date +%T)"; $(PSQL) -f sql/06_summary.sql; \
 	  printf '===== compare  %s\n' "$$(date +%T)"; $(PSQL) -f sql/04_compare.sql; \
@@ -97,7 +97,7 @@ philosophy.md: philosophy.txt tools/psql_to_md.py
 philosophy.pdf: philosophy.md tools/pagebreaks.lua
 	pandoc $< -o $@ --pdf-engine=xelatex --columns=70 --toc --toc-depth=3 \
 	  --lua-filter=tools/pagebreaks.lua -V header-includes='\usepackage{needspace}' \
-	  -V documentclass=extarticle -V fontsize=9pt -V mainfont="Arial" -V monofont="Menlo" \
+	  -V documentclass=extarticle -V fontsize=9pt -V mainfont="Arial Unicode MS" -V monofont="Menlo" \
 	  -V geometry:margin=1.6cm -V colorlinks=true -V linkcolor=black
 
 # Rebuild only the document: treat the load and topology stamps as current,

@@ -1,25 +1,12 @@
--- Reports for one rule:  psql -d wiki-phil -v rule=strict|paren -f sql/03_report.sql
+-- Reports for one rule:  psql -d wiki-phil -v rule=strict|parens_ok|skip_parens|skip_italics|loose -f sql/03_report.sql
 -- "Articles" = pages in the dump that are not redirects; red-link targets and
 -- redirects are graph nodes but are excluded from percentages.
 \timing off
 \pset footer off
-\if :{?rule}
-\else
-  \set rule strict
-\endif
-SELECT :'rule' = 'paren' AS is_paren \gset
-\if :is_paren
-  \set col  next_paren_id
-  \set topo wiki_topology_paren
-  \set cyc  cycle_nodes_paren
-\else
-  \set col  next_id
-  \set topo wiki_topology
-  \set cyc  cycle_nodes
-\endif
+\i sql/rule_vars.sql
 
 \echo
-\echo '################  rule =' :rule '################'
+\echo '################  rule =' :rule '(' :rule_desc ')################'
 \echo
 \echo '== Where do articles end up?'
 SELECT t.terminal_type,

@@ -12,14 +12,13 @@ that into a graph, classifies where every chain ends, and reports the numbers.
 enwiki-<date>-pages-articles-multistream.xml.bz2   (27 GB)
         │  ./target/release/wiki-philosophy          ~5 min
         ▼
-wiki_edges.csv   title, target_title, paren_target_title, is_redirect
+wiki_edges.csv   title, <rule>_target_title x5, is_redirect
         │  psql -f sql/01_load.sql                   ~6 min
         ▼
-wiki_pages       one row per node, redirect chains collapsed into next_id
-        │  psql -v rule=strict -f sql/02_topology.sql   ~1.5 min per rule
-        │  psql -v rule=paren  -f sql/02_topology.sql
+wiki_pages       one row per node, redirect chains collapsed into next_<rule>
+        │  psql -v rule=<rule> -f sql/02_topology.sql   ~1.5 min per rule, 5 rules
         ▼
-wiki_topology, wiki_topology_paren   where every node's chain ends
+wiki_topology_<rule>   where every node's chain ends under each rule
         │  sql/03_report.sql, sql/04_compare.sql, sql/05_stats.sql
         ▼
 reports
@@ -62,13 +61,12 @@ cargo build --release
 ./target/release/wiki-philosophy [path/to/dump.xml.bz2]      # writes wiki_edges.csv
 
 psql -d wiki-phil -v csv=/abs/path/wiki_edges.csv -f sql/01_load.sql
-psql -d wiki-phil -v rule=strict -f sql/02_topology.sql
-psql -d wiki-phil -v rule=paren  -f sql/02_topology.sql
-psql -d wiki-phil -v rule=strict -f sql/03_report.sql
-psql -d wiki-phil -v rule=paren  -f sql/03_report.sql
+for r in strict parens_ok skip_parens skip_italics loose; do psql -d wiki-phil -v rule=$r -f sql/02_topology.sql; done
+psql -d wiki-phil -f sql/02b_articles.sql
+for r in strict parens_ok skip_parens skip_italics loose; do psql -d wiki-phil -v rule=$r -f sql/03_report.sql; done
 psql -d wiki-phil -f sql/04_compare.sql
-psql -d wiki-phil -v rule=strict -f sql/05_stats.sql
-psql -d wiki-phil -v rule=paren  -f sql/05_stats.sql
+for r in strict parens_ok skip_parens skip_italics loose; do psql -d wiki-phil -v rule=$r -f sql/05_stats.sql; done
+psql -d wiki-phil -f sql/06_summary.sql
 ```
 
 `01_load.sql` uses a server-side `COPY`, so the Postgres server process must
@@ -91,33 +89,42 @@ for checking a single page against a manual walk.
 
 "First link" follows the conventions of the
 [Getting to Philosophy](https://en.wikipedia.org/wiki/Wikipedia:Getting_to_Philosophy)
-game. The scanner produces two answers for every page in one pass.
+game. A candidate link can sit in three contexts that a rule may exclude:
+inside parentheses, inside italics, or inside a template or table. The
+scanner records all three for every candidate and emits, in one pass, the
+first link under each of five rules:
 
-**Strict rule** (`target_title`, `next_id`, `wiki_topology`): the first
-`[[wikilink]]` in the article body that is
+| rule | skips | note |
+|---|---|---|
+| `strict` | parenthesized, italicized, template | Wikipedia's strict rule |
+| `parens_ok` | italicized, template | parenthesized links count; how most people play by hand |
+| `skip_parens` | parenthesized | italics and templates count |
+| `skip_italics` | italicized | parentheses and templates count |
+| `loose` | template | Wikipedia's loose rule |
 
-- not inside parentheses `( )`,
-- not in italics (`''...''`; bold `'''` does not count, `'''''` toggles both),
-- not inside a template `{{ }}` or table `{| |}` at any nesting depth,
-- not inside `<!-- -->`, `<ref>`, `<nowiki>`, `<math>`, `<chem>`,
-  `<gallery>`, `<pre>`, `<code>`, `<syntaxhighlight>`, `<source>`,
-  `<timeline>`, `<imagemap>`, `<score>`, `<hiero>`, `<mapframe>`,
-  `<maplink>`,
-- not a link into another namespace: `File:`, `Image:`, `Category:`,
-  `Template:`, `Wikipedia:`, `Help:`, `Portal:`, interwiki prefixes such as
-  `wikt:` or `commons:`, two-to-twelve-letter language codes such as `fr:`,
-  and anything starting with `:`. A colon alone does not disqualify a target:
-  "Dune: Part Two" is an article. Namespaced links are skipped together with
-  their caption, so a link inside `[[File:x.jpg|thumb|see [[Foo]]]]` is not
-  taken.
+Every rule also skips links inside `<!-- -->`, `<ref>`, `<nowiki>`,
+`<math>`, `<chem>`, `<gallery>`, `<pre>`, `<code>`, `<syntaxhighlight>`,
+`<source>`, `<timeline>`, `<imagemap>`, `<score>`, `<hiero>`, `<mapframe>`,
+`<maplink>`, and links into another namespace: `File:`, `Image:`,
+`Category:`, `Template:`, `Wikipedia:`, `Help:`, `Portal:`, interwiki
+prefixes such as `wikt:` or `commons:`, two-to-twelve-letter language codes
+such as `fr:`, and anything starting with `:`. A colon alone does not
+disqualify a target: "Dune: Part Two" is an article. Namespaced links are
+skipped together with their caption, so a link inside
+`[[File:x.jpg|thumb|see [[Foo]]]]` is not taken.
 
-**Parentheses rule** (`paren_target_title`, `next_paren_id`,
-`wiki_topology_paren`): identical, except that links inside parentheses count.
-This is how most people play by hand: the first sentence of Philosophy is
-"Philosophy (from [[Ancient Greek]] ...)", and under the strict rule that link
-is skipped in favour of "existence" a few words later. The two rules give
-different answers for about 1 in 30 articles and, as it happens, for
-Philosophy itself.
+"Template" means inside any `{{ }}` template or `{| |}` table at any nesting
+depth. Infoboxes, hatnotes and navboxes are all templates, and the scanner
+cannot tell them apart without expanding them, so "non-infobox" in
+Wikipedia's wording is implemented as "not inside any template". Under
+`skip_parens` and `skip_italics` the first link is therefore very often an
+infobox link.
+
+The CSV carries one `<rule>_target_title` column per rule; the database
+carries `next_<rule>` (redirects collapsed), `wiki_topology_<rule>`,
+`cycle_nodes_<rule>`, and `<rule>_type`, `<rule>_dist`, `<rule>_terminal`
+in `wiki_articles`. Rule names are turned into those column and table names
+by `sql/rule_vars.sql`, which the per-rule scripts include.
 
 Two scanner details that matter for the numbers:
 
@@ -190,11 +197,13 @@ distribution, longest roads, where Philosophy itself leads, biggest dead ends
 split into red links versus link-less articles, biggest cycles with their
 trajectory.
 
-**04_compare.sql**: outcome matrix of strict versus parentheses rule, how often
-the two rules choose a different first link, and the share of articles within
-N clicks under both rules side by side, with two denominators: all articles,
-and only the articles that reach Philosophy under that rule. The denominator
-matters: under the strict rule roughly half of all articles never arrive.
+**04_compare.sql**: every rule against the strict rule: where articles end
+up, how often the first link differs, articles gained and lost to Philosophy,
+clicks compared, two cross-tabs (strict versus parens_ok, strict versus loose), and
+the cumulative share within N clicks and the milestone clicks for all five
+rules, with two denominators: all articles, and only the articles that reach
+Philosophy under that rule. The denominator matters: under the strict rule
+roughly half of all articles never arrive.
 
 **06_summary.sql** (`make stats`): both rules on one page: where articles end
 up, mean, median and modal clicks, milestones, Philosophy's own chain under
@@ -218,42 +227,40 @@ shortest roads from unexpected places.
 
 | table | contents |
 |---|---|
-| `wiki_pages` | `id`, `title`, `in_dump`, `is_redirect`, `first_link_target_id`, `paren_link_target_id`, `next_id`, `next_paren_id`, `redirect_hops` |
-| `wiki_topology`, `wiki_topology_paren` | `page_id`, `terminal_type` (`philosophy`, `dead_end`, `cycle`), `terminal_id`, `distance` |
-| `cycle_nodes`, `cycle_nodes_paren` | cycle members with `cycle_id` and `cycle_len` |
-| `wiki_articles` | articles only: `title`, both `next_id`s, `strict_type`, `strict_dist`, `strict_terminal`, `paren_type`, `paren_dist`, `paren_terminal` |
+| `wiki_pages` | `id`, `title`, `in_dump`, `is_redirect`, `<rule>_target` and `next_<rule>` for each of the five rules |
+| `wiki_topology_<rule>` | `page_id`, `terminal_type` (`philosophy`, `dead_end`, `cycle`), `terminal_id`, `distance` |
+| `cycle_nodes_<rule>` | cycle members with `cycle_id` and `cycle_len` |
+| `wiki_articles` | articles only: `title`, `next_<rule>`, `<rule>_target`, `<rule>_type`, `<rule>_dist`, `<rule>_terminal` for each rule |
 
 ## Results snapshot (dump of 2026-10-01)
 
-Articles: 7,249,098. Redirects: 12,065,386. Red-link targets: 30,031.
-Articles with no qualifying first link: 34,728 strict, 32,137 parentheses
-rule (mostly disambiguation pages, whose links are italicized). The two rules
-pick a different first link for 345,844 articles, 4.8%.
+Articles: 7,249,098. Redirects: 12,065,386. Red-link targets: 30,031. The
+two Wikipedia rules disagree with each other far less than either disagrees
+with the single-exclusion variants:
 
-| where articles end up | strict rule | parentheses rule |
-|---|---|---|
-| Philosophy | 51.5% | 94.8% |
-| a cycle | 47.4% | 4.2% |
-| a dead end | 1.0% | 1.0% |
-| mean clicks, those arriving | 15.2 | 14.1 |
+| rule | skips | reach Philosophy | in a cycle | dead end | mean clicks |
+|---|---|---|---|---|---|
+| strict | parens, italics, templates | 51.5% | 47.4% | 1.0% | 15.2 |
+| parens_ok | italics, templates | 94.8% | 4.2% | 1.0% | 14.1 |
+| skip_parens | parens only | 7.8% | 89.8% | 2.4% | 13.7 |
+| skip_italics | italics only | 16.5% | 81.2% | 2.3% | 14.8 |
+| loose | templates only | 94.8% | 4.3% | 0.8% | 14.0 |
 
-Clicks needed to cover a share of all articles: 25% within 16 (strict) or 11
-(parentheses); 50% within 25 or 15; 90% never (strict) or 21 (parentheses).
-
-- Under the strict rule Philosophy does not loop back: Philosophy →
-  Existence → Reality → Existence, and a seven-page loop, Attitude
-  (psychology) → Psychology → Mind → Thought → Cognition → Knowledge →
-  Belief, holds 3.1 million articles. 3.17 million articles that end in a
-  cycle under the strict rule reach Philosophy under the parentheses rule.
-- Under the parentheses rule Philosophy returns to itself in 9 clicks:
-  Philosophy → Ancient Greek → Greek language → Indo-European languages →
-  Language family → Language → Communication → Information → Abstract and
-  concrete → Philosophy. The largest remaining traps are Mathematics ↔
-  Number theory (86,081 articles) and Existence ↔ Reality (45,716).
-- The longest distance under both rules is 201 clicks, the saint Gelasius,
-  via about 170 single-file pages of the Eastern Orthodox liturgical calendar,
-  each linking first to the previous day. Every other article is within 39
-  (strict) or 35 (parentheses).
+- The loose rule and parens_ok give the same answer for
+  93 percent of articles and the same headline: 94.8 percent reach
+  Philosophy, half of Wikipedia within 15 clicks, 90 percent within 21.
+- The strict rule loses because Philosophy itself does not loop back:
+  Philosophy → Existence → Reality → Existence. A seven-page loop, Attitude
+  (psychology) → Psychology → Mind → Thought → Cognition → Knowledge → Belief,
+  then holds 3.1 million articles. Under every other rule Philosophy returns
+  to itself in 9 clicks through Ancient Greek.
+- Allowing template links (skip_parens, skip_italics) changes the first link of 59 percent of
+  articles, because the first link on most pages is then an infobox or
+  navbox link, and a single two-page loop, Provinces of Laos ↔ Xaisomboun
+  province, swallows 2.1 to 2.8 million articles.
+- The longest distance under strict, parens_ok and loose is 201 clicks, the saint
+  Gelasius, via about 170 single-file pages of the Eastern Orthodox
+  liturgical calendar, each linking first to the previous day.
 
 Rerun the reports for current numbers.
 

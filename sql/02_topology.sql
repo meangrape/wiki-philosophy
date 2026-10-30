@@ -1,26 +1,12 @@
 -- Classify every node by where its first-link chain ends, under one rule.
---   psql -d wiki-phil -v rule=strict -f sql/02_topology.sql   (default)
---   psql -d wiki-phil -v rule=paren  -f sql/02_topology.sql
+--   psql -d wiki-phil -v rule=strict|parens_ok|skip_parens|skip_italics|loose -f sql/02_topology.sql   (default strict)
 -- Out-degree <= 1 (a functional graph): each node ends at Philosophy, at a
 -- sink (no link), or in a cycle. Backward BFS from the terminals is a tree
 -- walk, so no path arrays are needed and every node is visited once.
 \timing on
 \set ON_ERROR_STOP on
 SET client_min_messages = warning;   -- hide 'does not exist, skipping' notices
-\if :{?rule}
-\else
-  \set rule strict
-\endif
-SELECT :'rule' = 'paren' AS is_paren \gset
-\if :is_paren
-  \set col  next_paren_id
-  \set topo wiki_topology_paren
-  \set cyc  cycle_nodes_paren
-\else
-  \set col  next_id
-  \set topo wiki_topology
-  \set cyc  cycle_nodes
-\endif
+\i sql/rule_vars.sql
 \echo rule=:rule  column=:col  tables=:topo :cyc
 
 SELECT id AS philosophy_id FROM wiki_pages WHERE title = 'Philosophy' \gset

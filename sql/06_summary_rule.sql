@@ -1,6 +1,7 @@
--- Included by 06_summary.sql once per rule; expects :rule, :col, :tt, :td, :philosophy_id.
+-- Included by 06_summary.sql once per rule; expects :rule and :philosophy_id.
 \echo
-\echo '################  rule =' :rule '################'
+\i sql/rule_vars.sql
+\echo '################  rule =' :rule '(' :rule_desc ')################'
 \echo
 \echo '== Where Philosophy itself leads'
 WITH RECURSIVE chain AS (

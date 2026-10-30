@@ -1,27 +1,12 @@
--- Distance statistics for one rule:  psql -d wiki-phil -v rule=strict|paren -f sql/05_stats.sql
+-- Distance statistics for one rule:  psql -d wiki-phil -v rule=strict|parens_ok|skip_parens|skip_italics|loose -f sql/05_stats.sql
 -- Articles only (in the dump, not redirects).
 \timing off
 \pset footer off
-\if :{?rule}
-\else
-  \set rule strict
-\endif
-SELECT :'rule' = 'paren' AS is_paren \gset
-\if :is_paren
-  \set col  next_paren_id
-  \set topo wiki_topology_paren
-  \set tt   paren_type
-  \set td   paren_dist
-\else
-  \set col  next_id
-  \set topo wiki_topology
-  \set tt   strict_type
-  \set td   strict_dist
-\endif
+\i sql/rule_vars.sql
 SELECT id AS philosophy_id FROM wiki_pages WHERE title = 'Philosophy' \gset
 
 \echo
-\echo '################  rule =' :rule '################'
+\echo '################  rule =' :rule '(' :rule_desc ')################'
 
 -- Articles that reach Philosophy, with distance, reused below.
 CREATE TEMP TABLE reach AS

@@ -31,9 +31,14 @@ def group_digits(text):
     return text
 
 
+def tex_safe(text):
+    """pandoc treats a backslash followed by letters as raw LaTeX; escape it."""
+    return text.replace("\\", "\\\\")
+
+
 def cell(text):
     text = group_digits(text.strip()).replace("_", " ").replace(" -> ", " → ")
-    return text.replace("|", "\\|")
+    return tex_safe(text).replace("|", "\\|")
 
 
 def emit_table(header, rows, out):
@@ -110,11 +115,20 @@ def convert(lines):
             continue
         m = re.match(r"^(\w+) = (.+)$", line.strip())
         if m:
-            out.append(f"**{m.group(1).replace('_', ' ')}**: {m.group(2)}")
+            out.append(f"**{m.group(1).replace('_', ' ')}**: {tex_safe(m.group(2))}")
             out.append("")
             i += 1
             continue
-        out.append(line.strip())
+        if re.match(r"^(psql:|ERROR:|DETAIL:|HINT:|LINE \d+:)", line.strip()):
+            # psql diagnostics: show verbatim in a code block, never as markup
+            out.append("```")
+            while i < n and lines[i].strip() != "":
+                out.append(lines[i].rstrip("\n"))
+                i += 1
+            out.append("```")
+            out.append("")
+            continue
+        out.append(tex_safe(line.strip()))
         out.append("")
         i += 1
     return "\n".join(out).rstrip() + "\n"

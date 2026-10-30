@@ -23,12 +23,25 @@ const STREAMS_PER_BATCH: usize = 8;
 /// Cap on link-less pages sampled into `$NULL_SAMPLE` (title + text head).
 const NULL_SAMPLE_CAP: usize = 3000;
 
+/// Link contexts a rule may exclude, as bits of a candidate's context mask.
+const IN_PAREN: u8 = 1;
+const IN_ITALIC: u8 = 2;
+const IN_TEMPLATE: u8 = 4;
+
+/// The rules written to the CSV, as the set of contexts each one excludes.
+/// Order matches the CSV columns after `title`.
+const RULES: &[(&str, u8)] = &[
+    ("strict", IN_PAREN | IN_ITALIC | IN_TEMPLATE), // Wikipedia's strict rule
+    ("parens_ok", IN_ITALIC | IN_TEMPLATE),         // parenthesized links count
+    ("skip_parens", IN_PAREN),                      // only parenthesized links skipped
+    ("skip_italics", IN_ITALIC),                    // only italicized links skipped
+    ("loose", IN_TEMPLATE),                         // only template links skipped: Wikipedia's loose rule
+];
+
 struct Row {
     title: String,
-    /// First link under the strict rule (parentheses skipped).
-    target: Option<String>,
-    /// First link when parenthesized links count too.
-    target_paren: Option<String>,
+    /// First link under each rule in `RULES`, same order.
+    targets: Vec<Option<String>>,
     is_redirect: bool,
     /// Head of the cleaned wikitext, only for link-less pages when sampling.
     snippet: Option<String>,
@@ -129,20 +142,21 @@ fn normalize_title(raw: &str) -> Option<String> {
     Some(out)
 }
 
-/// First `[[wikilink]]` in the body under two rules, found in one pass:
-/// strict skips links inside parentheses, lenient takes them. Both skip
-/// italics and braces (templates `{{ }}` and tables `{| |}`), and skip
-/// namespaced links together with their captions, e.g.
-/// `[[File:x.jpg|thumb|[[Link]]]]`. Comments and `<ref>`-style tags are
-/// skipped in the same pass. Returns (strict, lenient).
-fn find_first_links(text: &str) -> (Option<String>, Option<String>) {
+/// First `[[wikilink]]` in the body under every rule in `RULES`, found in one
+/// pass. Each candidate link carries a context mask (inside parentheses,
+/// italics, a template or table); a rule accepts the first candidate that
+/// is in none of the contexts it excludes. Namespaced links are skipped
+/// together with their captions, e.g. `[[File:x.jpg|thumb|[[Link]]]]`, and
+/// comments and `<ref>`-style tags are skipped as units.
+fn find_first_links(text: &str) -> Vec<Option<String>> {
     let b = text.as_bytes();
     let n = b.len();
     let mut i = 0;
     let mut depth_paren = 0u32;
     let mut depth_curly = 0u32;
     let mut italic = false;
-    let mut lenient: Option<String> = None;
+    let mut found: Vec<Option<String>> = vec![None; RULES.len()];
+    let mut remaining = RULES.len();
 
     while i < n {
         match b[i] {
@@ -205,15 +219,18 @@ fn find_first_links(text: &str) -> (Option<String>, Option<String>) {
                     continue;
                 }
 
-                if depth_curly == 0 && !italic {
-                    if let Some(t) = normalize_title(target) {
-                        if depth_paren == 0 {
-                            let lenient = lenient.unwrap_or_else(|| t.clone());
-                            return (Some(t), Some(lenient));
+                if let Some(t) = normalize_title(target) {
+                    let mask = (depth_paren > 0) as u8 * IN_PAREN
+                        | italic as u8 * IN_ITALIC
+                        | (depth_curly > 0) as u8 * IN_TEMPLATE;
+                    for (slot, (_, excluded)) in found.iter_mut().zip(RULES) {
+                        if slot.is_none() && mask & excluded == 0 {
+                            *slot = Some(t.clone());
+                            remaining -= 1;
                         }
-                        if lenient.is_none() {
-                            lenient = Some(t);
-                        }
+                    }
+                    if remaining == 0 {
+                        return found;
                     }
                 }
                 i = j;
@@ -223,7 +240,7 @@ fn find_first_links(text: &str) -> (Option<String>, Option<String>) {
         }
         i += 1;
     }
-    (None, lenient)
+    found
 }
 
 /// RFC 4180 quoting so Postgres `COPY ... CSV` accepts titles such as
@@ -316,19 +333,18 @@ fn process_xml(xml: &[u8], sample_nulls: bool) -> Vec<Row> {
                     if ns == 0 && !title.is_empty() {
                         PAGES_PROCESSED.fetch_add(1, Ordering::Relaxed);
                         let is_redirect = redirect_to.is_some() || is_redirect_text(&text);
-                        let (target, target_paren) = match redirect_to.take() {
-                            Some(r) => (Some(r.clone()), Some(r)),
+                        let targets = match redirect_to.take() {
+                            Some(r) => vec![Some(r); RULES.len()],
                             None => find_first_links(&text),
                         };
-                        let snippet = if sample_nulls && target.is_none() && !is_redirect {
+                        let snippet = if sample_nulls && targets[0].is_none() && !is_redirect {
                             Some(head_chars(text.trim_start(), 300))
                         } else {
                             None
                         };
                         rows.push(Row {
                             title: std::mem::take(&mut title),
-                            target,
-                            target_paren,
+                            targets,
                             is_redirect,
                             snippet,
                         });
@@ -371,13 +387,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if args.get(1).map(String::as_str) == Some("--first-link") {
         for path in &args[2..] {
             let text = std::fs::read_to_string(path)?;
-            let (strict, lenient) = find_first_links(&text);
-            println!(
-                "{}\tstrict={}\tparen={}",
-                path,
-                strict.unwrap_or_default(),
-                lenient.unwrap_or_default()
-            );
+            let found = find_first_links(&text);
+            let cols: Vec<String> = RULES
+                .iter()
+                .zip(&found)
+                .map(|((name, _), t)| format!("{}={}", name, t.clone().unwrap_or_default()))
+                .collect();
+            println!("{}\t{}", path, cols.join("\t"));
         }
         return Ok(());
     }
@@ -400,7 +416,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let output_csv = std::env::var("OUTPUT_CSV").unwrap_or_else(|_| DEFAULT_OUTPUT_CSV.to_string());
     let out_file = File::create(&output_csv)?;
     let mut writer = BufWriter::with_capacity(4 << 20, out_file);
-    writeln!(writer, "title,target_title,paren_target_title,is_redirect")?;
+    let header: Vec<String> = RULES.iter().map(|(name, _)| format!("{}_target_title", name)).collect();
+    writeln!(writer, "title,{},is_redirect", header.join(","))?;
 
     let mut null_writer = match &null_sample_path {
         Some(p) => Some(BufWriter::new(File::create(p)?)),
@@ -466,12 +483,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 let t = csv_field(&row.title);
                 let flag = if row.is_redirect { 't' } else { 'f' };
-                if row.target.is_none() {
+                if row.targets[0].is_none() {
                     n_null += 1;
                 }
-                let strict = row.target.as_deref().map(csv_field).unwrap_or_default();
-                let paren = row.target_paren.as_deref().map(csv_field).unwrap_or_default();
-                writeln!(writer, "{},{},{},{}", t, strict, paren, flag)?;
+                let cols: Vec<Cow<str>> = row
+                    .targets
+                    .iter()
+                    .map(|t| t.as_deref().map(csv_field).unwrap_or_default())
+                    .collect();
+                writeln!(writer, "{},{},{}", t, cols.join(","), flag)?;
                 if let (Some(w), Some(s)) = (null_writer.as_mut(), row.snippet.as_ref()) {
                     if n_sampled < NULL_SAMPLE_CAP {
                         n_sampled += 1;
