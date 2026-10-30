@@ -32,6 +32,8 @@ COPY staging_raw FROM :'csv' WITH (FORMAT csv, HEADER true);
 -- A page moved while the dump was written appears twice (article + redirect).
 -- One sorted pass keeps one row per title, preferring the article, then the
 -- earlier row; cost is the same whether there are 17 duplicates or a million.
+-- (A GROUP BY title HAVING count(*) > 1 aggregate + DELETE of the losers was
+-- measured at ~101 s vs ~38 s for this sort, so the sort stays.)
 CREATE UNLOGGED TABLE staging_wiki AS
 SELECT DISTINCT ON (title) *
 FROM staging_raw
@@ -118,6 +120,42 @@ CREATE INDEX wiki_pages_next_r3_idx     ON wiki_pages (next_loose);
 ANALYZE wiki_pages;
 
 DROP TABLE wiki_raw, redirect_final, wiki_nodes, staging_wiki;
+
+-- 6. strip_leaves(tbl): used by 02_topology.sql, defined here once so parallel
+--    topology runs (make -j) never race on CREATE OR REPLACE of the same pg_proc row.
+--    tbl holds (id, next_id) with an index on next_id. Deletes in-degree-0 rows
+--    to a fixpoint, leaving exactly the cycle members, and returns the number of
+--    DELETE rounds (the last one deletes nothing). Round 1 anti-joins the whole
+--    table; a later round can only delete a row whose successor was deleted in
+--    the round before, so it probes only that frontier (by the (id) index) and
+--    tests in-degree by the (next_id) index. The (id) index is built after
+--    round 1, when the table is smallest; pass 2b of 02_topology.sql reuses it.
+--    Two temp tables hold the previous and the current frontier, so a round
+--    costs O(frontier), not O(all frontiers so far).
+CREATE OR REPLACE FUNCTION strip_leaves(tbl regclass) RETURNS int LANGUAGE plpgsql AS $$
+DECLARE n bigint; rounds int := 1;
+BEGIN
+  EXECUTE 'CREATE TEMP TABLE IF NOT EXISTS strip_frontier_0 (id int NOT NULL)';
+  EXECUTE 'CREATE TEMP TABLE IF NOT EXISTS strip_frontier_1 (id int NOT NULL)';
+  EXECUTE 'TRUNCATE strip_frontier_0, strip_frontier_1';
+  EXECUTE format('WITH del AS (DELETE FROM %s c WHERE NOT EXISTS (SELECT 1 FROM %s d WHERE d.next_id = c.id) RETURNING c.next_id)
+                  INSERT INTO strip_frontier_1 SELECT DISTINCT next_id FROM del WHERE next_id IS NOT NULL', tbl, tbl);
+  GET DIAGNOSTICS n = ROW_COUNT;
+  EXECUTE format('CREATE INDEX ON %s (id)', tbl);
+  EXECUTE format('ANALYZE %s', tbl);
+  WHILE n > 0 LOOP
+    rounds := rounds + 1;
+    -- round k reads strip_frontier_(k-1)%2 and writes strip_frontier_k%2
+    EXECUTE format('TRUNCATE strip_frontier_%s', rounds % 2);
+    EXECUTE format('WITH del AS (DELETE FROM %s c WHERE c.id IN (SELECT f.id FROM strip_frontier_%s f)
+                      AND NOT EXISTS (SELECT 1 FROM %s d WHERE d.next_id = c.id) RETURNING c.next_id)
+                    INSERT INTO strip_frontier_%s SELECT DISTINCT next_id FROM del WHERE next_id IS NOT NULL',
+                   tbl, (rounds - 1) % 2, tbl, rounds % 2);
+    GET DIAGNOSTICS n = ROW_COUNT;
+  END LOOP;
+  EXECUTE 'DROP TABLE strip_frontier_0, strip_frontier_1';
+  RETURN rounds;
+END $$;
 
 SELECT count(*)                                            AS nodes,
        count(*) FILTER (WHERE in_dump)                     AS dump_pages,

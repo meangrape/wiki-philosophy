@@ -5,3 +5,4 @@ commit-message.txt
 Session.vim
 run.log
 .stamps/
+.worktrees/

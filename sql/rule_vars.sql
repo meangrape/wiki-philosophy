@@ -7,6 +7,7 @@
 SELECT 'next_' || :'rule'          AS col,
        'wiki_topology_' || :'rule' AS topo,
        'cycle_nodes_' || :'rule'   AS cyc,
+       :'rule' || '_target'        AS tgt,
        :'rule' || '_type'          AS tt,
        :'rule' || '_dist'          AS td,
        :'rule' || '_terminal'      AS tterm,

@@ -15,6 +15,7 @@ UNION ALL SELECT 'parens_ok', 2, parens_ok_type, parens_ok_dist FROM wiki_articl
 UNION ALL SELECT 'skip_parens',    3, skip_parens_type,    skip_parens_dist    FROM wiki_articles
 UNION ALL SELECT 'skip_italics',    4, skip_italics_type,    skip_italics_dist    FROM wiki_articles
 UNION ALL SELECT 'loose',    5, loose_type,    loose_dist    FROM wiki_articles;
+ANALYZE by_rule;  -- temp tables are never autovacuumed
 
 \echo
 \echo '== Rules'

@@ -64,7 +64,8 @@ ORDER BY r.distance DESC, r.title LIMIT 10;
 
 \echo
 \echo '== Farthest chain heads outside the single-file tail (distances still shared by 10+ articles)'
-SELECT max(distance) AS crowded_max FROM (SELECT distance FROM reach GROUP BY distance HAVING count(*) >= 10) d \gset
+-- -1 when no distance is shared by 10+ articles: the two queries below then return no rows.
+SELECT coalesce(max(distance), -1) AS crowded_max FROM (SELECT distance FROM reach GROUP BY distance HAVING count(*) >= 10) d \gset
 SELECT r.title, r.distance
 FROM reach r
 WHERE r.distance <= :crowded_max
@@ -75,7 +76,7 @@ ORDER BY r.distance DESC, r.title LIMIT 10;
 \echo '== Single-file tails: chains that own the far distances, and where they rejoin the crowd'
 WITH RECURSIVE heads AS (
     SELECT r.page_id, r.title, r.distance FROM reach r
-    WHERE r.distance > :crowded_max
+    WHERE :crowded_max >= 0 AND r.distance > :crowded_max
       AND NOT EXISTS (SELECT 1 FROM wiki_pages q WHERE q.:col = r.page_id AND q.in_dump AND NOT q.is_redirect)
 ),
 walk AS (

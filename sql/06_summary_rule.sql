@@ -12,7 +12,10 @@ WITH RECURSIVE chain AS (
     WHERE NOT p.id = ANY(c.seen) AND c.pos < 50
 )
 SELECT string_agg(w.title, ' -> ' ORDER BY c.pos)
-       || CASE WHEN (SELECT bool_or(next_id = :philosophy_id) FROM chain) THEN ' -> Philosophy' ELSE ' -> (loops without Philosophy)' END AS chain
+       || CASE WHEN (SELECT bool_or(next_id = :philosophy_id) FROM chain) THEN ' -> Philosophy'
+               WHEN (SELECT next_id FROM chain ORDER BY pos DESC LIMIT 1) IS NULL THEN ' -> (dead end)'
+               WHEN max(c.pos) >= 50 THEN ' -> ...'
+               ELSE ' -> (back to ' || (SELECT b.title FROM chain x JOIN wiki_pages b ON b.id = x.next_id ORDER BY x.pos DESC LIMIT 1) || ')' END AS chain
 FROM chain c JOIN wiki_pages w ON w.id = c.id;
 
 \echo
@@ -43,10 +46,10 @@ GROUP BY w.start_id, b.title;
 \echo
 SELECT :'rule' = 'strict' AS first_pass \gset
 \if :first_pass
-\echo '== Examples: articles that hit a dead end (random, common-word titles; kinds: red, none[^deadend])'
-\echo '[^deadend]: A dead end is a page whose chain stops. **red**: the first link points at a page that does not exist, shown as a red link on Wikipedia. **none**: the page exists but has no qualifying first link, typically a disambiguation page whose links are italicized, or a page whose lead is nothing but templates.'
+\echo '== Examples: articles that hit a dead end (random, common-word titles; kinds: red, redirect, none[^deadend])'
+\echo '[^deadend]: A dead end is a page whose chain stops. **red**: the first link points at a page that does not exist, shown as a red link on Wikipedia. **redirect**: the first link is a redirect that never resolves to an article: a redirect loop, a chain of more than 10 redirects, or a redirect into another namespace. **none**: the page exists but has no qualifying first link, typically a disambiguation page whose links are italicized, or a page whose lead is nothing but templates.'
 \else
-\echo '== Examples: articles that hit a dead end (random, common-word titles; kinds: red, none)'
+\echo '== Examples: articles that hit a dead end (random, common-word titles; kinds: red, redirect, none)'
 \endif
 WITH RECURSIVE ex AS (
     SELECT page_id FROM wiki_articles
@@ -62,9 +65,9 @@ walk AS (
 ),
 last AS (SELECT DISTINCT ON (start_id) start_id, cur AS sink_id FROM walk ORDER BY start_id, pos DESC)
 SELECT string_agg(t.title, ' -> ' ORDER BY w.pos)
-       || CASE WHEN s.in_dump THEN ' -> (dead end: none)' ELSE ' -> (dead end: red)' END AS chain
+       || ' -> (dead end: ' || CASE WHEN NOT s.in_dump THEN 'red' WHEN s.:tgt IS NOT NULL THEN 'redirect' ELSE 'none' END || ')' AS chain
 FROM walk w
 JOIN wiki_pages t ON t.id = w.cur
 JOIN last l ON l.start_id = w.start_id
 JOIN wiki_pages s ON s.id = l.sink_id
-GROUP BY w.start_id, s.in_dump;
+GROUP BY w.start_id, s.in_dump, s.:tgt;

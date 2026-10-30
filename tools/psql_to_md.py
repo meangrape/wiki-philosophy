@@ -11,8 +11,12 @@ import re
 import sys
 
 NOISE = re.compile(r"^(Timing is (on|off)\.|SELECT \d+|CREATE INDEX|CREATE FUNCTION|DROP TABLE|INSERT \d+ \d+|ANALYZE|SET|RESET|Time: .*)$")
-RULES = {"strict": "parenthesized links are skipped", "paren": "parenthesized links count"}
-STAGES = {"stats": "Summary", "compare": "Strict rule versus parentheses rule",
+RULES = {"strict": "parenthesized, italicized and template links are skipped",
+         "parens_ok": "italicized and template links are skipped",
+         "skip_parens": "only parenthesized links are skipped",
+         "skip_italics": "only italicized links are skipped",
+         "loose": "only template links are skipped"}
+STAGES = {"stats": "Summary", "compare": "Every rule against strict",
           "report": "Report", "stats-full": "Full statistics"}
 NUMERIC = re.compile(r"^-?[\d,]+(\.\d+)?%?( ?\(\d+(\.\d+)?%\))?$")
 
@@ -31,22 +35,32 @@ def group_digits(text):
     return text
 
 
-def tex_safe(text):
-    """pandoc treats a backslash followed by letters as raw LaTeX; escape it."""
-    return text.replace("\\", "\\\\")
+MD_SPECIAL = re.compile(r"([\\`*_{}\[\]()#+!$<>~^|&@-])")
+LIST_NUMBER = re.compile(r"^(\d+)([.)])(?=\s|$)")
+FOOTNOTE_DEF = re.compile(r"^\[\^\w+\]: ")
 
 
-def cell(text):
-    text = group_digits(text.strip()).replace("_", " ").replace(" -> ", " → ")
-    return tex_safe(text).replace("|", "\\|")
+def md_escape(text):
+    """Backslash-escape Markdown/pandoc punctuation so data renders literally.
+
+    Covers emphasis, inline math, raw HTML/LaTeX, links, code, lists, tables,
+    citations and sub/superscript; a leading "1." is escaped so it is not
+    read as an ordered list. Apply only to data, never to emitted markup.
+    """
+    return LIST_NUMBER.sub(r"\1\\\2", MD_SPECIAL.sub(r"\\\1", text))
+
+
+def cell_text(text):
+    """psql cell -> display text (digits grouped, _ as space, -> as arrow)."""
+    return group_digits(text.strip()).replace("_", " ").replace(" -> ", " → ")
 
 
 def emit_table(header, rows, out):
     cols = [c.strip() for c in header.split("|")]
-    body = [[cell(c) for c in r.split("|")] for r in rows]
+    body = [[cell_text(c) for c in r.split("|")] for r in rows]
     if len(cols) == 1:
         # chains, title lists: one bullet per row reads better than a table
-        out.extend(f"- {r[0]}" for r in body if r[0])
+        out.extend(f"- {md_escape(r[0])}" for r in body if r[0])
         if not body:
             out.append("*(none)*")
         out.append("")
@@ -54,10 +68,10 @@ def emit_table(header, rows, out):
     body = [r + [""] * (len(cols) - len(r)) for r in body]
     numeric = [all(NUMERIC.match(r[i].replace(" ", "")) for r in body if r[i]) and any(r[i] for r in body)
                for i in range(len(cols))]
-    out.append("| " + " | ".join(c.replace("_", " ") for c in cols) + " |")
+    out.append("| " + " | ".join(md_escape(c.replace("_", " ")) for c in cols) + " |")
     out.append("|" + "|".join("---:" if n else "---" for n in numeric) + "|")
     for r in body:
-        out.append("| " + " | ".join(r) + " |")
+        out.append("| " + " | ".join(md_escape(c) for c in r) + " |")
     if not body:
         out.append("| " + " | ".join("" for _ in cols) + " |")
     out.append("")
@@ -71,7 +85,7 @@ def convert(lines):
     while i < n:
         line = lines[i].rstrip("\n")
         if line.startswith("====="):
-            m = re.match(r"=====\s+(\S+)(?:\s+(strict|paren))?\s+(\d\d:\d\d:\d\d)", line)
+            m = re.match(r"=====\s+(\S+)(?:\s+([a-z_]+))?\s+(\d\d:\d\d:\d\d)", line)
             stage = m.group(1) if m else line.strip("= ")
             rule = m.group(2) if m else None
             if not title_done:
@@ -82,16 +96,20 @@ def convert(lines):
                 title_done = True
             label = STAGES.get(stage, stage)
             stage_rule = rule
-            out.append(f"## {label}" + (f": {rule} rule ({RULES[rule]})" if rule else ""))
+            out.append(f"## {label}" + (f": {rule} rule ({RULES.get(rule, '')})" if rule else ""))
             out.append("")
             i += 1
             continue
         if line.startswith("####"):
-            rule = re.search(r"rule = (\w+)", line).group(1)
-            if rule == stage_rule:   # stage heading already names the rule
+            m = re.search(r"rule = (\w+)", line)
+            rule = m.group(1) if m else None
+            if rule is None:
+                out.append("### " + line.strip("# "))
+            elif rule == stage_rule:   # stage heading already names the rule
                 i += 1
                 continue
-            out.append(f"### Rule: {rule}" + (f" ({RULES[rule]})" if rule in RULES else ""))
+            else:
+                out.append(f"### Rule: {rule}" + (f" ({RULES[rule]})" if rule in RULES else ""))
             out.append("")
             i += 1
             continue
@@ -115,7 +133,7 @@ def convert(lines):
             continue
         m = re.match(r"^(\w+) = (.+)$", line.strip())
         if m:
-            out.append(f"**{m.group(1).replace('_', ' ')}**: {tex_safe(m.group(2))}")
+            out.append(f"**{m.group(1).replace('_', ' ')}**: {md_escape(m.group(2))}")
             out.append("")
             i += 1
             continue
@@ -128,7 +146,15 @@ def convert(lines):
             out.append("```")
             out.append("")
             continue
-        out.append(tex_safe(line.strip()))
+        # free text is \echo prose from the SQL: keep its footnote definitions
+        # and "- " list markers as markup, escape everything else
+        text = line.strip()
+        if FOOTNOTE_DEF.match(text):
+            out.append(text)
+        elif text.startswith("- "):
+            out.append("- " + md_escape(text[2:]))
+        else:
+            out.append(md_escape(text))
         out.append("")
         i += 1
     return "\n".join(out).rstrip() + "\n"

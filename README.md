@@ -39,12 +39,12 @@ disposable (see Postgres settings below).
 ### Running
 
 ```sh
-make                      # build, parse, load, classify both rules, all reports; log in run.log
+make                      # build, parse, load, classify all five rules, all reports; log in run.log
 make parse                # just the CSV
 make load                 # through the Postgres load
-make topology             # both rules classified
+make topology             # all five rules classified
 make articles             # articles-only results table the reports read
-make stats                # short summary for both rules, with example chains
+make stats                # short summary for all five rules, with example chains
 make report compare stats-full
 make pdf                  # philosophy.txt, .md, .pdf: summary, comparison, reports, full stats
 make docs                 # regenerate the document only, from the database as it is
@@ -82,7 +82,7 @@ Parser environment variables:
 | `NULL_SAMPLE=path` | write title + first 300 chars of every page with no qualifying link, up to 3000 |
 
 `./target/release/wiki-philosophy --first-link a.wikitext b.wikitext` prints
-the link the scanner would pick for a wikitext file, under both rules. Useful
+the link the scanner would pick for a wikitext file, under all five rules. Useful
 for checking a single page against a manual walk.
 
 ## The link rules
@@ -154,19 +154,24 @@ containing `{ } < > [ ] |` is treated as no link.
 - In the database, redirect chains are collapsed: `next_id` is the first
   non-redirect page reached by following up to 10 redirects, so a redirect
   never counts as a click. Redirect pages remain nodes but are excluded from
-  every percentage.
+  every percentage. When the chain never reaches an article (a redirect
+  loop, more than 10 redirects, or a redirect into another namespace),
+  `next_id` is NULL and the page is a dead end of kind `redirect`.
 - Link targets that are not pages in the dump (red links, or titles that
   moved during the dump) become nodes with `in_dump = f` and no out-link.
   That lets a dead end be attributed to a missing page rather than to an
-  article with no link.
+  article with no link. The reports label dead ends by kind: `red` (the
+  first link points at a page that is not in the dump), `redirect` (the
+  first link is a redirect that never resolves) and `none` (the page has no
+  qualifying first link).
 
 ## What the SQL does
 
 **01_load.sql.** `COPY` the CSV; deduplicate titles with one `DISTINCT ON`
 pass (a page moved while the dump is written appears twice, once as article
 and once as redirect; the article row wins); assign node ids once; build
-`wiki_pages` in a single `CREATE TABLE AS` with both raw link targets and both
-redirect-collapsed `next_id` columns. No `UPDATE` is run on the big table, so
+`wiki_pages` in a single `CREATE TABLE AS` with the five raw link targets and the five
+redirect-collapsed `next_<rule>` columns. No `UPDATE` is run on the big table, so
 nothing bloats and, under `wal_level = minimal`, nothing is WAL-logged.
 
 **02_topology.sql.** Every node has out-degree at most one, so the graph is a
@@ -189,7 +194,7 @@ estimate the working table and otherwise picks a plan that rescans the whole
 index on every iteration.
 
 **02b_articles.sql** (`make articles`): one row per article with the outcome
-and distance under both rules, so the reports below read a 7 million row
+and distance under each of the five rules, so the reports below read a 7 million row
 table without joining the 19 million row topology tables each time.
 
 **03_report.sql**, per rule: terminal breakdown over articles, click
@@ -205,12 +210,12 @@ rules, with two denominators: all articles, and only the articles that reach
 Philosophy under that rule. The denominator matters: under the strict rule
 roughly half of all articles never arrive.
 
-**06_summary.sql** (`make stats`): both rules on one page: where articles end
+**06_summary.sql** (`make stats`): all five rules on one page: where articles end
 up, mean, median and modal clicks, milestones, Philosophy's own chain under
 each rule, and random example chains of articles that end in a cycle or at a
 dead end, printed in full. It includes `06_summary_rule.sql` once per rule.
 
-`make pdf` captures the summary, the comparison, both reports and the full
+`make pdf` captures the summary, the comparison, the per-rule reports and the full
 stats into `philosophy.txt`, converts it with `tools/psql_to_md.py` into
 `philosophy.md`, and typesets `philosophy.pdf` with pandoc and xelatex. The
 document opens with where articles end up and example chains of articles
@@ -252,8 +257,10 @@ with the single-exclusion variants:
 - The strict rule loses because Philosophy itself does not loop back:
   Philosophy → Existence → Reality → Existence. A seven-page loop, Attitude
   (psychology) → Psychology → Mind → Thought → Cognition → Knowledge → Belief,
-  then holds 3.1 million articles. Under every other rule Philosophy returns
-  to itself in 9 clicks through Ancient Greek.
+  then holds 3.1 million articles. Under parens_ok and loose, Philosophy
+  returns to itself in 9 clicks through Ancient Greek; under skip_italics in
+  16; under skip_parens it does not return (Philosophy → Existence → Reality
+  → Existence, as under strict).
 - Allowing template links (skip_parens, skip_italics) changes the first link of 59 percent of
   articles, because the first link on most pages is then an infobox or
   navbox link, and a single two-page loop, Provinces of Laos ↔ Xaisomboun
@@ -293,5 +300,9 @@ these settings for data you cannot regenerate. `wal_level = minimal` requires
   `<div>` is still taken.
 - Links generated by templates (for example `{{lang}}` or `{{ill}}`) are not
   seen at all, since templates are not expanded.
+- Redirect resolution stops after 10 hops and does not follow redirects into
+  other namespaces; a first link whose redirect never resolves is reported
+  as a dead end of kind `redirect`, not as the page it would eventually
+  reach.
 - "Strange" and "unexpected" in the stats are proxies: single common-word
   titles and a keyword filter, not a notability measure.
