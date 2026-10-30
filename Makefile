@@ -4,9 +4,11 @@
 #   make parse           just the CSV
 #   make load            through the Postgres load
 #   make topology        both rules classified
+#   make articles        articles-only results table that the reports read
 #   make stats           short summary for both rules, with examples
 #   make report compare stats-full
 #   make pdf             philosophy.txt / .md / .pdf from the full stats (needs pandoc + xelatex)
+#   make docs            regenerate the document from the database as it is, skipping load/topology
 #   make clean           forget completed stages (keeps the CSV and the database)
 #   make distclean       also delete the CSV and the Rust build
 #
@@ -28,7 +30,7 @@ LOG   := run.log
 ST    := .stamps
 RULES := strict paren
 
-.PHONY: all build parse load topology report compare stats stats-full pdf clean distclean
+.PHONY: all build parse load topology articles report compare stats stats-full pdf docs clean distclean
 
 all: report compare stats
 
@@ -54,35 +56,56 @@ $(ST)/topology-%: $(ST)/load sql/02_topology.sql
 	$(PSQL) -v rule=$* -f sql/02_topology.sql 2>&1 | tee -a $(LOG)
 	touch $@
 
-report: topology
+articles: $(ST)/articles
+$(ST)/articles: $(RULES:%=$(ST)/topology-%) sql/02b_articles.sql
+	@printf '===== articles  %s\n' "$$(date +%T)" | tee -a $(LOG)
+	$(PSQL) -f sql/02b_articles.sql 2>&1 | tee -a $(LOG)
+	touch $@
+
+report: articles
 	@for r in $(RULES); do \
 	  printf '===== report %s  %s\n' "$$r" "$$(date +%T)" | tee -a $(LOG); \
 	  $(PSQL) -v rule=$$r -f sql/03_report.sql 2>&1 | tee -a $(LOG); \
 	done
 
-compare: topology
+compare: articles
 	@printf '===== compare  %s\n' "$$(date +%T)" | tee -a $(LOG)
 	$(PSQL) -f sql/04_compare.sql 2>&1 | tee -a $(LOG)
 
-stats: topology
+stats: articles
 	@printf '===== stats  %s\n' "$$(date +%T)" | tee -a $(LOG)
 	$(PSQL) -f sql/06_summary.sql 2>&1 | tee -a $(LOG)
 
-stats-full: topology
+stats-full: articles
 	@for r in $(RULES); do \
 	  printf '===== stats-full %s  %s\n' "$$r" "$$(date +%T)" | tee -a $(LOG); \
 	  $(PSQL) -v rule=$$r -f sql/05_stats.sql 2>&1 | tee -a $(LOG); \
 	done
 
 pdf: philosophy.pdf
-philosophy.txt: $(RULES:%=$(ST)/topology-%) sql/03_report.sql sql/04_compare.sql sql/05_stats.sql sql/06_summary.sql sql/06_summary_rule.sql
-	{ $(MAKE) -s stats; $(MAKE) -s compare; $(MAKE) -s report; $(MAKE) -s stats-full; } > $@
+# Runs psql directly rather than recursing into make: a sub-make re-evaluates
+# dependencies, so an edit to a SQL file mid-run would restart the load here.
+philosophy.txt: $(ST)/articles sql/03_report.sql sql/04_compare.sql sql/05_stats.sql sql/06_summary.sql sql/06_summary_rule.sql
+	@printf '===== docs  %s\n' "$$(date +%T)" | tee -a $(LOG)
+	{ printf '===== stats  %s\n' "$$(date +%T)"; $(PSQL) -f sql/06_summary.sql; \
+	  printf '===== compare  %s\n' "$$(date +%T)"; $(PSQL) -f sql/04_compare.sql; \
+	  for r in $(RULES); do printf '===== report %s  %s\n' "$$r" "$$(date +%T)"; $(PSQL) -v rule=$$r -f sql/03_report.sql; done; \
+	  for r in $(RULES); do printf '===== stats-full %s  %s\n' "$$r" "$$(date +%T)"; $(PSQL) -v rule=$$r -f sql/05_stats.sql; done; \
+	} > $@ 2>&1
 philosophy.md: philosophy.txt tools/psql_to_md.py
 	python3 -I tools/psql_to_md.py $< > $@
-philosophy.pdf: philosophy.md
+philosophy.pdf: philosophy.md tools/pagebreaks.lua
 	pandoc $< -o $@ --pdf-engine=xelatex --columns=70 --toc --toc-depth=3 \
+	  --lua-filter=tools/pagebreaks.lua -V header-includes='\usepackage{needspace}' \
 	  -V documentclass=extarticle -V fontsize=9pt -V mainfont="Arial" -V monofont="Menlo" \
 	  -V geometry:margin=1.6cm -V colorlinks=true -V linkcolor=black
+
+# Rebuild only the document: treat the load and topology stamps as current,
+# whatever the SQL file timestamps say, and force the stats to rerun.
+docs:
+	mkdir -p $(ST) && touch $(ST)/load $(RULES:%=$(ST)/topology-%)
+	rm -f philosophy.txt
+	$(MAKE) pdf
 
 $(ST):
 	mkdir -p $@

@@ -10,9 +10,13 @@ SELECT :'rule' = 'paren' AS is_paren \gset
 \if :is_paren
   \set col  next_paren_id
   \set topo wiki_topology_paren
+  \set tt   paren_type
+  \set td   paren_dist
 \else
   \set col  next_id
   \set topo wiki_topology
+  \set tt   strict_type
+  \set td   strict_dist
 \endif
 SELECT id AS philosophy_id FROM wiki_pages WHERE title = 'Philosophy' \gset
 
@@ -21,15 +25,13 @@ SELECT id AS philosophy_id FROM wiki_pages WHERE title = 'Philosophy' \gset
 
 -- Articles that reach Philosophy, with distance, reused below.
 CREATE TEMP TABLE reach AS
-SELECT t.page_id, t.distance, p.title
-FROM :topo t JOIN wiki_pages p ON p.id = t.page_id
-WHERE t.terminal_type = 'philosophy' AND p.in_dump AND NOT p.is_redirect;
+SELECT page_id, :td AS distance, title FROM wiki_articles WHERE :tt = 'philosophy';
 CREATE INDEX ON reach (distance);
-SELECT count(*) AS all_articles FROM wiki_pages WHERE in_dump AND NOT is_redirect \gset
+SELECT count(*) AS all_articles FROM wiki_articles \gset
 SELECT count(*) AS reaching FROM reach \gset
 
 \echo
-\echo '== Share of articles within N clicks of Philosophy'
+\echo '== Cumulative share of articles within N clicks of Philosophy'
 SELECT distance AS within_clicks,
        count(*) AS at_this_distance,
        sum(count(*)) OVER (ORDER BY distance) AS cumulative,
@@ -38,34 +40,35 @@ SELECT distance AS within_clicks,
 FROM reach GROUP BY distance ORDER BY distance LIMIT 35;
 
 \echo
-\echo '== Milestones: clicks needed to cover a share of all articles'
+\echo '== Clicks needed to reach Philosophy, by share of articles (blank = never)'
 WITH cum AS (
     SELECT distance,
            100.0 * sum(count(*)) OVER (ORDER BY distance) / :all_articles AS pct_all,
            100.0 * sum(count(*)) OVER (ORDER BY distance) / :reaching     AS pct_reaching
     FROM reach GROUP BY distance
 )
-SELECT m.pct AS share_pct,
-       (SELECT min(distance) FROM cum WHERE pct_all      >= m.pct) AS clicks_for_all_articles,
-       (SELECT min(distance) FROM cum WHERE pct_reaching >= m.pct) AS clicks_for_those_reaching
+SELECT m.pct AS "% of articles",
+       (SELECT min(distance) FROM cum WHERE pct_all      >= m.pct) AS "clicks, all articles",
+       (SELECT min(distance) FROM cum WHERE pct_reaching >= m.pct) AS "clicks, those reaching"
 FROM (VALUES (10),(25),(35),(50),(75),(90),(95),(99)) m(pct) ORDER BY 1;
 
-\echo
-\echo '== Philosophy''s own loop under this rule (clicks from Philosophy back to Philosophy; -1 = never returns)'
 WITH RECURSIVE chain AS (
     SELECT p.id, p.:col AS next_id, 1 AS pos FROM wiki_pages p WHERE p.id = :philosophy_id
     UNION ALL
     SELECT p.id, p.:col, c.pos + 1 FROM chain c JOIN wiki_pages p ON p.id = c.next_id
     WHERE p.id <> :philosophy_id AND c.pos < 100
 )
-SELECT coalesce(max(pos) FILTER (WHERE next_id = :philosophy_id), -1) AS loop_clicks FROM chain \gset
-\echo loop_clicks = :loop_clicks
+SELECT coalesce(max(pos) FILTER (WHERE next_id = :philosophy_id), -1) AS loop_clicks,
+       coalesce(max(pos) FILTER (WHERE next_id = :philosophy_id), -1) > 0 AS has_loop
+FROM chain \gset
 
+\if :has_loop
 \echo
-\echo '== Articles exactly as far from Philosophy as Philosophy is from itself (single common-word titles, random 40)'
+\echo '== Philosophy returns to itself in' :loop_clicks 'clicks under this rule. Articles exactly that far from Philosophy (single common-word titles, random 40)'
 SELECT title, distance FROM reach
 WHERE distance = :loop_clicks AND title ~ '^[A-Z][a-z]{2,10}$'
 ORDER BY random() LIMIT 40;
+\endif
 
 \echo
 \echo '== Farthest chain heads (no other article links into them)'

@@ -60,8 +60,8 @@ SELECT string_agg(w.title, ' -> ' ORDER BY c.pos) AS chain
 FROM chain c JOIN wiki_pages w ON w.id = c.id;
 
 \echo
-\echo '== Biggest dead ends: in_dump=f is a red link, in_dump=t is an article with no qualifying first link'
-SELECT s.title AS sink, s.in_dump, count(*) AS articles_ending_here
+\echo '== Biggest dead ends (kind: red = link to a page that does not exist, none = page has no qualifying first link)'
+SELECT s.title AS dead_end, CASE WHEN s.in_dump THEN 'none' ELSE 'red' END AS kind, count(*) AS articles_ending_here
 FROM :topo t
 JOIN wiki_pages p ON p.id = t.page_id
 JOIN wiki_pages s ON s.id = t.terminal_id
@@ -69,8 +69,8 @@ WHERE t.terminal_type = 'dead_end' AND p.in_dump AND NOT p.is_redirect
 GROUP BY 1, 2 ORDER BY 3 DESC LIMIT 15;
 
 \echo
-\echo '== Dead-end causes, by sink kind'
-SELECT s.in_dump AS sink_is_article, count(DISTINCT s.id) AS sinks, count(*) AS articles_trapped
+\echo '== Dead ends by kind'
+SELECT CASE WHEN s.in_dump THEN 'none' ELSE 'red' END AS kind, count(DISTINCT s.id) AS dead_ends, count(*) AS articles_trapped
 FROM :topo t
 JOIN wiki_pages p ON p.id = t.page_id
 JOIN wiki_pages s ON s.id = t.terminal_id

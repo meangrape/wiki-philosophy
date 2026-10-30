@@ -44,9 +44,11 @@ make                      # build, parse, load, classify both rules, all reports
 make parse                # just the CSV
 make load                 # through the Postgres load
 make topology             # both rules classified
+make articles             # articles-only results table the reports read
 make stats                # short summary for both rules, with example chains
 make report compare stats-full
 make pdf                  # philosophy.txt, .md, .pdf: summary, comparison, reports, full stats
+make docs                 # regenerate the document only, from the database as it is
 make DUMP=~/dumps/enwiki.xml.bz2 DB=wiki
 ```
 
@@ -179,6 +181,10 @@ recursive terms disable merge and hash joins, because the planner cannot
 estimate the working table and otherwise picks a plan that rescans the whole
 index on every iteration.
 
+**02b_articles.sql** (`make articles`): one row per article with the outcome
+and distance under both rules, so the reports below read a 7 million row
+table without joining the 19 million row topology tables each time.
+
 **03_report.sql**, per rule: terminal breakdown over articles, click
 distribution, longest roads, where Philosophy itself leads, biggest dead ends
 split into red links versus link-less articles, biggest cycles with their
@@ -215,6 +221,7 @@ shortest roads from unexpected places.
 | `wiki_pages` | `id`, `title`, `in_dump`, `is_redirect`, `first_link_target_id`, `paren_link_target_id`, `next_id`, `next_paren_id`, `redirect_hops` |
 | `wiki_topology`, `wiki_topology_paren` | `page_id`, `terminal_type` (`philosophy`, `dead_end`, `cycle`), `terminal_id`, `distance` |
 | `cycle_nodes`, `cycle_nodes_paren` | cycle members with `cycle_id` and `cycle_len` |
+| `wiki_articles` | articles only: `title`, both `next_id`s, `strict_type`, `strict_dist`, `strict_terminal`, `paren_type`, `paren_dist`, `paren_terminal` |
 
 ## Results snapshot (dump of 2026-10-01)
 

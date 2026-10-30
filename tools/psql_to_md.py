@@ -10,21 +10,42 @@ lines) is dropped. Underscores in titles are shown as spaces.
 import re
 import sys
 
-NOISE = re.compile(r"^(Timing is (on|off)\.|SELECT \d+|CREATE INDEX|DROP TABLE|INSERT \d+ \d+|ANALYZE|SET|RESET|Time: .*)$")
+NOISE = re.compile(r"^(Timing is (on|off)\.|SELECT \d+|CREATE INDEX|CREATE FUNCTION|DROP TABLE|INSERT \d+ \d+|ANALYZE|SET|RESET|Time: .*)$")
 RULES = {"strict": "parenthesized links are skipped", "paren": "parenthesized links count"}
 STAGES = {"stats": "Summary", "compare": "Strict rule versus parentheses rule",
           "report": "Report", "stats-full": "Full statistics"}
-NUMERIC = re.compile(r"^-?[\d,]+(\.\d+)?%?$")
+NUMERIC = re.compile(r"^-?[\d,]+(\.\d+)?%?( ?\(\d+(\.\d+)?%\))?$")
+
+
+INTEGER = re.compile(r"^-?\d{4,}$")
+DECIMAL = re.compile(r"^(-?\d{4,})(\.\d+)$")
+
+
+def group_digits(text):
+    """3736376 -> 3,736,376; 1234.56 -> 1,234.56; anything else unchanged."""
+    m = DECIMAL.match(text)
+    if m:
+        return f"{int(m.group(1)):,}{m.group(2)}"
+    if INTEGER.match(text):
+        return f"{int(text):,}"
+    return text
 
 
 def cell(text):
-    text = text.strip().replace("_", " ").replace(" -> ", " → ")
+    text = group_digits(text.strip()).replace("_", " ").replace(" -> ", " → ")
     return text.replace("|", "\\|")
 
 
 def emit_table(header, rows, out):
     cols = [c.strip() for c in header.split("|")]
     body = [[cell(c) for c in r.split("|")] for r in rows]
+    if len(cols) == 1:
+        # chains, title lists: one bullet per row reads better than a table
+        out.extend(f"- {r[0]}" for r in body if r[0])
+        if not body:
+            out.append("*(none)*")
+        out.append("")
+        return
     body = [r + [""] * (len(cols) - len(r)) for r in body]
     numeric = [all(NUMERIC.match(r[i].replace(" ", "")) for r in body if r[i]) and any(r[i] for r in body)
                for i in range(len(cols))]

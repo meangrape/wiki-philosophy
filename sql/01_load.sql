@@ -3,6 +3,7 @@
 -- Server-side COPY: the postgres process must be able to read :csv.
 \timing on
 \set ON_ERROR_STOP on
+SET client_min_messages = warning;   -- hide 'does not exist, skipping' notices
 \if :{?csv}
 \else
   \set csv '/Users/jayed/repos/wiki-philosophy/wiki_edges.csv'

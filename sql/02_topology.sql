@@ -6,6 +6,7 @@
 -- walk, so no path arrays are needed and every node is visited once.
 \timing on
 \set ON_ERROR_STOP on
+SET client_min_messages = warning;   -- hide 'does not exist, skipping' notices
 \if :{?rule}
 \else
   \set rule strict

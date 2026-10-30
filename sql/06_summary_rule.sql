@@ -1,4 +1,4 @@
--- Included by 06_summary.sql once per rule; expects :rule, :col, :topo, :philosophy_id.
+-- Included by 06_summary.sql once per rule; expects :rule, :col, :tt, :td, :philosophy_id.
 \echo
 \echo '################  rule =' :rule '################'
 \echo
@@ -17,9 +17,8 @@ FROM chain c JOIN wiki_pages w ON w.id = c.id;
 \echo
 \echo '== Examples: articles that end in a cycle (random, short chains, common-word titles)'
 WITH RECURSIVE ex AS (
-    SELECT t.page_id FROM :topo t JOIN wiki_pages p ON p.id = t.page_id
-    WHERE p.in_dump AND NOT p.is_redirect AND t.terminal_type = 'cycle'
-      AND t.distance BETWEEN 1 AND 5 AND p.title ~ '^[A-Z][a-z]{3,12}$'
+    SELECT page_id FROM wiki_articles
+    WHERE :tt = 'cycle' AND :td BETWEEN 1 AND 5 AND title ~ '^[A-Z][a-z]{3,12}$'
     ORDER BY random() LIMIT 6
 ),
 walk AS (
@@ -41,11 +40,16 @@ JOIN wiki_pages b ON b.id = l.back_to
 GROUP BY w.start_id, b.title;
 
 \echo
-\echo '== Examples: articles that hit a dead end (random, common-word titles)'
+SELECT :'rule' = 'strict' AS first_pass \gset
+\if :first_pass
+\echo '== Examples: articles that hit a dead end (random, common-word titles; kinds: red, none[^deadend])'
+\echo '[^deadend]: A dead end is a page whose chain stops. **red**: the first link points at a page that does not exist, shown as a red link on Wikipedia. **none**: the page exists but has no qualifying first link, typically a disambiguation page whose links are italicized, or a page whose lead is nothing but templates.'
+\else
+\echo '== Examples: articles that hit a dead end (random, common-word titles; kinds: red, none)'
+\endif
 WITH RECURSIVE ex AS (
-    SELECT t.page_id FROM :topo t JOIN wiki_pages p ON p.id = t.page_id
-    WHERE p.in_dump AND NOT p.is_redirect AND t.terminal_type = 'dead_end'
-      AND t.distance BETWEEN 1 AND 5 AND p.title ~ '^[A-Z][a-z]{3,12}$'
+    SELECT page_id FROM wiki_articles
+    WHERE :tt = 'dead_end' AND :td BETWEEN 1 AND 5 AND title ~ '^[A-Z][a-z]{3,12}$'
     ORDER BY random() LIMIT 6
 ),
 walk AS (
@@ -57,7 +61,7 @@ walk AS (
 ),
 last AS (SELECT DISTINCT ON (start_id) start_id, cur AS sink_id FROM walk ORDER BY start_id, pos DESC)
 SELECT string_agg(t.title, ' -> ' ORDER BY w.pos)
-       || CASE WHEN s.in_dump THEN ' -> (page has no qualifying link)' ELSE ' -> (red link: no such page)' END AS chain
+       || CASE WHEN s.in_dump THEN ' -> (dead end: none)' ELSE ' -> (dead end: red)' END AS chain
 FROM walk w
 JOIN wiki_pages t ON t.id = w.cur
 JOIN last l ON l.start_id = w.start_id
