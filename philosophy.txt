@@ -1,7 +1,8 @@
-===== stats  21:43:45
+===== stats  17:14:41
 Timing is off.
 CREATE FUNCTION
 SELECT 36245490
+ANALYZE
 
 == Rules
 - strict: parenthesized, italicized and template links skipped (Wikipedia's strict rule)
@@ -46,32 +47,32 @@ DROP TABLE
 ################  rule = strict ( parenthesized, italicized and template links skipped )################
 
 == Where Philosophy itself leads
-                              chain                               
-------------------------------------------------------------------
- Philosophy -> Existence -> Reality -> (loops without Philosophy)
+                           chain                           
+-----------------------------------------------------------
+ Philosophy -> Existence -> Reality -> (back to Existence)
 
 
 == Examples: articles that end in a cycle (random, short chains, common-word titles)
-                                                                                            chain                                                                                            
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- Brainwashed -> Brainwashing -> Manipulation_(psychology) -> Psychology -> Mind -> Thought -> Cognition -> Knowledge -> Belief -> Attitude_(psychology) -> (back to Psychology)
- Marlowe -> Marlowe_(name) -> Andrew_W._Marlowe -> Screenwriter -> (back to Screenwriter)
- Nose -> Sense -> Biological_system -> Biological_network -> Graph_theory -> Mathematics -> Number_theory -> (back to Mathematics)
- Pajon -> Pajon_(surname) -> Claude_Pajon -> Theology -> Belief -> Attitude_(psychology) -> Psychology -> Mind -> Thought -> Cognition -> Knowledge -> (back to Belief)
- Pesvarus -> Monotypic_taxon -> Biology -> Scientific_study -> Knowledge -> Belief -> Attitude_(psychology) -> Psychology -> Mind -> Thought -> Cognition -> (back to Knowledge)
- Vancosamine -> Amino_sugar -> Organic_chemistry -> Academic_discipline -> Knowledge -> Belief -> Attitude_(psychology) -> Psychology -> Mind -> Thought -> Cognition -> (back to Knowledge)
+                                                                                            chain                                                                                             
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Catharus -> Clade -> Biology -> Scientific_study -> Knowledge -> Belief -> Attitude_(psychology) -> Psychology -> Mind -> Thought -> Cognition -> (back to Knowledge)
+ Cuboctahedron -> Polyhedron -> Geometry -> Mathematics -> Number_theory -> (back to Mathematics)
+ Roseola -> Infection -> Tissue_(biology) -> Biology -> Scientific_study -> Knowledge -> Belief -> Attitude_(psychology) -> Psychology -> Mind -> Thought -> Cognition -> (back to Knowledge)
+ Seidenberg -> Abraham_Seidenberg -> Mathematician -> Mathematics -> Number_theory -> (back to Mathematics)
+ Smarthistory -> Art_history -> Academic_discipline -> Knowledge -> Belief -> Attitude_(psychology) -> Psychology -> Mind -> Thought -> Cognition -> (back to Knowledge)
+ Tepovirus -> Virus -> Pathogen -> Biology -> Scientific_study -> Knowledge -> Belief -> Attitude_(psychology) -> Psychology -> Mind -> Thought -> Cognition -> (back to Knowledge)
 
 
-== Examples: articles that hit a dead end (random, common-word titles; kinds: red, none[^deadend])
-[^deadend]: A dead end is a page whose chain stops. **red**: the first link points at a page that does not exist, shown as a red link on Wikipedia. **none**: the page exists but has no qualifying first link, typically a disambiguation page whose links are italicized, or a page whose lead is nothing but templates.
-                                             chain                                             
------------------------------------------------------------------------------------------------
- Gorny -> Gorny_District -> Administrative_divisions_of_the_Sakha_Republic -> (dead end: none)
- Mahanama -> Mahanama_(arhat) -> (dead end: red)
- Ravenscroft -> John_Ravenscroft -> John_Ravenscroft_(engineer) -> (dead end: red)
- Schiffman -> Adir_Shiffman -> (dead end: red)
- Taisha -> Taisha_(shrine) -> (dead end: red)
- Yuanjia -> Yuanjia,_Jiahe -> (dead end: red)
+== Examples: articles that hit a dead end (random, common-word titles; kinds: red, redirect, none[^deadend])
+[^deadend]: A dead end is a page whose chain stops. **red**: the first link points at a page that does not exist, shown as a red link on Wikipedia. **redirect**: the first link is a redirect that never resolves to an article: a redirect loop, a chain of more than 10 redirects, or a redirect into another namespace. **none**: the page exists but has no qualifying first link, typically a disambiguation page whose links are italicized, or a page whose lead is nothing but templates.
+                                       chain                                       
+-----------------------------------------------------------------------------------
+ Bhavam -> List_of_Malayalam_films_of_2002 -> (dead end: none)
+ Farnaz -> Farnaz_Shetty -> (dead end: none)
+ Gomaespuma -> Juan_Luis_Cano -> (dead end: red)
+ Gottesman -> Beyle_Schaechter&ndash;Gottesman -> (dead end: red)
+ Kavasila -> Kavasila,_Attica -> (dead end: red)
+ Venn -> Venn_Eyre -> Archdeacon_of_Carlisle -> Ecclesiastical -> (dead end: none)
 
 
 ################  rule = parens_ok ( italicized and template links skipped; parenthesized links count )################
@@ -83,55 +84,55 @@ DROP TABLE
 
 
 == Examples: articles that end in a cycle (random, short chains, common-word titles)
-                                                                 chain                                                                 
----------------------------------------------------------------------------------------------------------------------------------------
- Balrothery -> Fingal -> Counties_of_Ireland -> Norman_Irish -> Normans -> Norman_language -> Guernésiais -> (back to Norman_language)
- Gajush -> Lezhë_County -> Counties_of_Albania -> Administrative_divisions_of_Albania -> (back to Counties_of_Albania)
- Ghantaraba -> Raga -> Indian_classical_music -> Art_music -> Classical_music -> (back to Art_music)
- Livingetc -> Future_plc -> Publishing -> (back to Publishing)
- Maramataka -> Lunar_calendar -> Calendar -> Day -> Time -> Existence -> Reality -> (back to Existence)
- Parwanaya -> Mandaic_language -> Mandaeism -> (back to Mandaic_language)
+                                                                                        chain                                                                                        
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Civil -> Civility -> Politeness -> Etiquette -> (back to Politeness)
+ Guitarissimo -> Miwa_(singer) -> Don't_Cry_Anymore -> (back to Miwa_(singer))
+ Lubiano -> Vitoria-Gasteiz -> Basque_Country_(autonomous_community) -> Autonomous_communities_of_Spain -> Political_divisions_of_Spain -> (back to Autonomous_communities_of_Spain)
+ Shakujiidai -> Nerima -> Special_wards_of_Tokyo -> Tokyo -> Capital_of_Japan -> (back to Tokyo)
+ Siderokausia -> Mining -> Natural_resource -> Resource -> Non-renewable_resource -> (back to Natural_resource)
+ Univa -> Altair_Engineering -> Multinational_corporation -> Corporation -> Entity -> Existence -> Reality -> (back to Existence)
 
 
-== Examples: articles that hit a dead end (random, common-word titles; kinds: red, none)
-                              chain                              
------------------------------------------------------------------
- Ahwerase -> Akuapem_South_Municipal_District -> (dead end: red)
- Bankliya -> Gram_Panchayat_Bakliya -> (dead end: red)
- Flufenacet -> Oxyacetanilide -> (dead end: red)
- Sulfarsazene -> Metal_indicator -> (dead end: red)
- Tengo -> Tengo_Miura -> (dead end: red)
- Volovo -> Volovo,_Bulgaria -> (dead end: red)
+== Examples: articles that hit a dead end (random, common-word titles; kinds: red, redirect, none)
+                           chain                            
+------------------------------------------------------------
+ Brika -> Art_House_Records -> (dead end: red)
+ Hartgill -> Edward_Hartgill -> (dead end: red)
+ Irlavada -> Gurtedu_mandal -> (dead end: red)
+ Isovoacangine -> 3-Hydroxyisovoacangine -> (dead end: red)
+ Lagopsis -> Lagopsis_(mammal) -> (dead end: red)
+ Platystigma -> Platystigma_(dragonfly) -> (dead end: red)
 
 
 ################  rule = skip_parens ( only parenthesized links skipped )################
 
 == Where Philosophy itself leads
-                              chain                               
-------------------------------------------------------------------
- Philosophy -> Existence -> Reality -> (loops without Philosophy)
+                           chain                           
+-----------------------------------------------------------
+ Philosophy -> Existence -> Reality -> (back to Existence)
 
 
 == Examples: articles that end in a cycle (random, short chains, common-word titles)
-                                                                              chain                                                                              
------------------------------------------------------------------------------------------------------------------------------------------------------------------
- Bottari -> Angela_Maria_Bottari -> Messina -> Messina_Cathedral -> Catholic_Church -> St._Peter's_Basilica -> (back to Catholic_Church)
- Carting -> Cart -> Working_animal -> Domestication -> Mutualism_(biology) -> Biological_interaction -> Ecology -> Symbiosis -> (back to Biological_interaction)
- Engelberg -> Attinghausen -> Altdorf,_Uri -> (back to Attinghausen)
- Hertzoggie -> South_Africa -> ǀXam_language -> (back to South_Africa)
- Solopos -> Newspaper -> Periodical_literature -> Publication -> Publishing -> (back to Publishing)
- Tagalog -> Tagalog_language -> Tagalaka_language -> (back to Tagalog_language)
+                                                                                          chain                                                                                           
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Khizar -> Niazi -> Pashtuns -> All_India_Pakhtoon_Jirga-e-Hind -> (back to Pashtuns)
+ Mbondjanga -> Cameroon -> O_Cameroon,_Cradle_of_Our_Forefathers -> Bernard_Fonlon -> Demographics_of_Cameroon -> (back to Cameroon)
+ Passara -> Town -> Ipswich -> (back to Town)
+ Phoneme -> Phone_(phonetics) -> Phonetics -> Linguistics -> Science -> Knowledge -> Belief -> Attitude_(psychology) -> Psychology -> Mind -> Thought -> Cognition -> (back to Knowledge)
+ Pygospila -> Pygospila_tyres -> Pieter_Cramer -> Netherlands -> Kingdom_of_the_Netherlands -> Wilhelmus -> De_Wilhelmus -> (back to Wilhelmus)
+ Sunglasses -> Eye_protection -> Personal_protective_equipment -> Clothing -> Textile -> Fiber -> (back to Fiber)
 
 
-== Examples: articles that hit a dead end (random, common-word titles; kinds: red, none)
-                                      chain                                      
----------------------------------------------------------------------------------
- Birimdik -> Ainuru_Altybaeva -> (dead end: red)
- Claoxylon -> Claoxylon_sandwicense -> (dead end: red)
- Clausinella -> Clausinella_scalaris -> (dead end: red)
- Labilibaculum -> Labilibaculum_antarcticum -> (dead end: red)
- Mormogystia -> Mormogystia_brandstetteri -> Aidas_Saldaitis -> (dead end: none)
- Thecopus -> Thecopus_maingayi -> (dead end: red)
+== Examples: articles that hit a dead end (random, common-word titles; kinds: red, redirect, none)
+                                                     chain                                                     
+---------------------------------------------------------------------------------------------------------------
+ Chaetonema -> Chaetonema_irregulare -> (dead end: red)
+ Cyanosesia -> Yutaka_Arita -> (dead end: none)
+ Griffithsia -> Griffithsia_corallinoides -> (dead end: red)
+ Hadrucalcin -> Hadrurus_gertschi -> (dead end: red)
+ Levassor -> Charles-Auguste_Levassor_de_La_Touche-Tréville -> French_frigate_Zéphir_(1729) -> (dead end: red)
+ Thomasinotus -> Induan -> Mikin_Formation -> (dead end: red)
 
 
 ################  rule = skip_italics ( only italicized links skipped )################
@@ -143,25 +144,25 @@ DROP TABLE
 
 
 == Examples: articles that end in a cycle (random, short chains, common-word titles)
-                                                          chain                                                          
--------------------------------------------------------------------------------------------------------------------------
- Agnero -> Juvenal_Agnero -> Orbaff -> Districts_of_Ivory_Coast -> Ivory_Coast -> L'Abidjanaise -> (back to Ivory_Coast)
- Bewsiella -> Mite -> Early_Devonian -> Rhynie_chert -> (back to Early_Devonian)
- Changhua -> County-administered_city -> Administrative_divisions_of_Taiwan -> Taiwan -> (back to Taiwan)
- Fury -> Rage_(emotion) -> Anger -> (back to Rage_(emotion))
- Turkiella -> Mite -> Early_Devonian -> Rhynie_chert -> (back to Early_Devonian)
- Yeoh -> Hokkien -> China -> Taiwan -> (back to Taiwan)
+                                                                            chain                                                                             
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Catapodium -> Johann_Heinrich_Friedrich_Link -> Hildesheim -> Hildesheim_Cathedral -> (back to Hildesheim)
+ Dafalas -> Jabal_Ar_Rahrah -> Hajar_Mountains -> Nakhal_Fort -> Nakhal -> (back to Nakhal_Fort)
+ Duplicity -> Duplicity_(play) -> Thomas_Holcroft -> John_Opie -> Trevellas -> St_Agnes,_Cornwall -> Cornwall -> Wheal_Coates -> (back to St_Agnes,_Cornwall)
+ Halkar -> Kumta -> Town -> Ipswich -> (back to Town)
+ Moodorama -> Regensburg -> Regensburg_Cathedral -> (back to Regensburg)
+ Uriah -> Hebrew_language -> Modern_Hebrew -> Shalom -> (back to Hebrew_language)
 
 
-== Examples: articles that hit a dead end (random, common-word titles; kinds: red, none)
-                                           chain                                           
--------------------------------------------------------------------------------------------
- Bzhedugs -> Circassian_flag -> Circassia -> Union_of_Regional_Councils -> (dead end: red)
- Cojo -> Cojocaru_And -> (dead end: red)
- Eskandarabad -> Eskandarabad,_Khuzestan -> (dead end: red)
- Fagaronine -> Benzophenanthridine -> (dead end: red)
- Inseparables -> Inséparables_(1999_film) -> (dead end: red)
- Tainosia -> Jacek_Szwedo -> (dead end: none)
+== Examples: articles that hit a dead end (random, common-word titles; kinds: red, redirect, none)
+                                             chain                                              
+------------------------------------------------------------------------------------------------
+ Beddomixalus -> Robert_Alexander_Pyron -> (dead end: none)
+ Foxley -> Foxley,_Glasgow -> (dead end: red)
+ Grotea -> Grotea_(wasp) -> (dead end: red)
+ Lepidotoramus -> Richard_A._B._Leschen -> (dead end: red)
+ Peritrechus -> Rhyparochromidae -> Charles_Jean-Baptiste_Amyot -> Vendreeuv -> (dead end: red)
+ Russmedia -> Limited_liability_company_(Austria) -> (dead end: red)
 
 
 ################  rule = loose ( only template links skipped (the loose rule) )################
@@ -173,30 +174,31 @@ DROP TABLE
 
 
 == Examples: articles that end in a cycle (random, short chains, common-word titles)
-                                                                                  chain                                                                                  
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- Aqaq -> Syriac_language -> Syriac_literature -> (back to Syriac_language)
- Duncormick -> County_Wexford -> Counties_of_Ireland -> Norman_Irish -> Normans -> Norman_language -> Guernésiais -> (back to Norman_language)
- Groopman -> Jerome_Groopman -> The_New_Yorker -> Harold_Ross -> (back to The_New_Yorker)
- Sohla -> JAXA -> Japanese_space_program -> (back to JAXA)
- Tshela -> Kongo_Central -> Provinces_of_the_Democratic_Republic_of_the_Congo -> Democratic_Republic_of_the_Congo -> Zaire -> (back to Democratic_Republic_of_the_Congo)
- Varghese -> Syriac_language -> Syriac_literature -> (back to Syriac_language)
+                                                                                            chain                                                                                             
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Bellpuig -> Comarques_of_Catalonia -> Subdivisions_of_Catalonia -> Catalonia -> Autonomous_communities_of_Spain -> Political_divisions_of_Spain -> (back to Autonomous_communities_of_Spain)
+ Cullishigay -> Dry_measure -> Unit_of_measurement -> Magnitude_(mathematics) -> Mathematics -> Number_theory -> (back to Mathematics)
+ Mathibeli -> Mathibeli_Mokhothu -> Sotho_people -> Sotho-Tswana_peoples -> (back to Sotho_people)
+ Porosity -> Void_(composites) -> Solid_geometry -> Geometry -> Mathematics -> Number_theory -> (back to Mathematics)
+ Sikidy -> Algebra -> Mathematics -> Number_theory -> (back to Mathematics)
+ Viviani -> Anselmo_Viviani -> Cross-country_skiing_(sport) -> Cross-country_skiing -> Skiing -> Ski -> (back to Skiing)
 
 
-== Examples: articles that hit a dead end (random, common-word titles; kinds: red, none)
-                               chain                               
--------------------------------------------------------------------
- Archaeron -> Archaeron_Games_Ltd. -> (dead end: red)
- Bhasot -> Bhikiasain,_Uttarakhand -> (dead end: red)
- Brackebusch -> Johann_Georg_Ludwig_Brackebusch -> (dead end: red)
- Malplaquet -> Malplaquet,_Liège -> (dead end: red)
- Rutsker -> Rutsker_Parish -> (dead end: red)
- Tizoxanide -> Thiazolide -> (dead end: red)
+== Examples: articles that hit a dead end (random, common-word titles; kinds: red, redirect, none)
+                               chain                                
+--------------------------------------------------------------------
+ Benzonsdal -> Torslunde -> (dead end: red)
+ Gogan -> Good_Governance_Ambassadors_of_Nigeria -> (dead end: red)
+ Shangfeng -> Shangfeng,_Jiangxi -> (dead end: red)
+ Snapp -> Jörns_socken -> (dead end: red)
+ Tehrah -> Arts_for_Peace_Awards -> (dead end: red)
+ Venance -> Venance_Grumel -> La_Serraz -> (dead end: red)
 
-===== compare  21:44:08
+===== compare  17:15:01
 Timing is off.
 CREATE FUNCTION
 SELECT 36245490
+ANALYZE
 
 == Rules
 - strict: parenthesized, italicized and template links skipped (Wikipedia's strict rule)
@@ -317,7 +319,7 @@ SELECT 36245490
                   99 |     27 |        24 |          25 |           29 |    23
 
 DROP TABLE
-===== report strict  21:45:06
+===== report strict  17:15:43
 Timing is off.
 
 ################  rule = strict ( parenthesized, italicized and template links skipped )################
@@ -330,7 +332,7 @@ Timing is off.
  dead_end      |    74355 |  1.03 |       0.63 |          8
 
 
-== Clicks-to-Philosophy distribution (buckets of 1 up to 30, then 10)
+== Clicks-to-Philosophy distribution (buckets of 1 up to 29, then 10)
  clicks  | sort_key | articles 
 ---------+----------+----------
  0       |        0 |        1
@@ -363,8 +365,7 @@ Timing is off.
  27      |       27 |    17354
  28      |       28 |    12526
  29      |       29 |    11404
- 30      |       30 |     4114
- 30-39   |       31 |      769
+ 30-39   |       30 |     4883
  40-49   |       40 |       10
  50-59   |       50 |       10
  60-69   |       60 |       10
@@ -405,31 +406,32 @@ Timing is off.
  Philosophy -> Existence -> Reality
 
 
-== Biggest dead ends (kind: red = link to a page that does not exist, none = page has no qualifying first link)
-                      dead_end                      | kind | articles_ending_here 
-----------------------------------------------------+------+----------------------
- Ecclesiastical                                     | none |                  545
- Lunar_eclipse                                      | none |                  362
- Geo-cultural_region                                | red  |                  338
- London,_Ontario                                    | none |                  221
- Exoteric                                           | none |                  202
- Gaumee_Film_Awards                                 | none |                  120
- Administrative_divisions_of_Altai_Krai             | none |                   78
- Ecological_reserves_of_Quebec                      | none |                   71
- Dignitary                                          | none |                   70
- Administrative_divisions_of_Novosibirsk_Oblast     | none |                   70
- Administrative_divisions_of_the_Sakha_Republic     | none |                   67
- Administrative_divisions_of_Kirov_Oblast           | none |                   60
- Administrative_divisions_of_Saratov_Oblast         | none |                   56
- Administrative_divisions_of_Orenburg_Oblast        | none |                   54
- Administrative_divisions_of_Nizhny_Novgorod_Oblast | none |                   54
+== Biggest dead ends (kind: red = link to a page that does not exist, redirect = first link is a redirect that never resolves, none = page has no qualifying first link)
+                      dead_end                      |   kind   | articles_ending_here 
+----------------------------------------------------+----------+----------------------
+ Ecclesiastical                                     | none     |                  545
+ Lunar_eclipse                                      | redirect |                  362
+ Geo-cultural_region                                | red      |                  338
+ London,_Ontario                                    | none     |                  221
+ Exoteric                                           | none     |                  202
+ Gaumee_Film_Awards                                 | none     |                  120
+ Administrative_divisions_of_Altai_Krai             | none     |                   78
+ Ecological_reserves_of_Quebec                      | none     |                   71
+ Administrative_divisions_of_Novosibirsk_Oblast     | none     |                   70
+ Dignitary                                          | none     |                   70
+ Administrative_divisions_of_the_Sakha_Republic     | none     |                   67
+ Administrative_divisions_of_Kirov_Oblast           | none     |                   60
+ Administrative_divisions_of_Saratov_Oblast         | none     |                   56
+ Administrative_divisions_of_Orenburg_Oblast        | none     |                   54
+ Administrative_divisions_of_Nizhny_Novgorod_Oblast | none     |                   54
 
 
 == Dead ends by kind
- kind | dead_ends | articles_trapped 
-------+-----------+------------------
- none |     34728 |            40163
- red  |     28780 |            34192
+   kind   | dead_ends | articles_trapped 
+----------+-----------+------------------
+ none     |     34067 |            39012
+ red      |     28780 |            34192
+ redirect |       661 |             1151
 
 
 == Biggest cycles
@@ -446,7 +448,7 @@ Timing is off.
      5864 |         2 | Ski -> Skiing
      3610 |         2 | History_of_Canadian_sports -> Sports_in_Canada
 
-===== report parens_ok  21:45:10
+===== report parens_ok  17:15:47
 Timing is off.
 
 ################  rule = parens_ok ( italicized and template links skipped; parenthesized links count )################
@@ -459,7 +461,7 @@ Timing is off.
  dead_end      |    69770 |  0.96 |       0.63 |          7
 
 
-== Clicks-to-Philosophy distribution (buckets of 1 up to 30, then 10)
+== Clicks-to-Philosophy distribution (buckets of 1 up to 29, then 10)
  clicks  | sort_key | articles 
 ---------+----------+----------
  0       |        0 |        1
@@ -492,8 +494,7 @@ Timing is off.
  27      |       27 |     3374
  28      |       28 |     2655
  29      |       29 |      552
- 30      |       30 |       68
- 30-39   |       31 |       38
+ 30-39   |       30 |      106
  40-49   |       40 |       14
  50-59   |       50 |       10
  60-69   |       60 |       10
@@ -534,31 +535,32 @@ Timing is off.
  Philosophy -> Ancient_Greek -> Greek_language -> Indo-European_languages -> Language_family -> Language -> Communication -> Information -> Abstract_and_concrete
 
 
-== Biggest dead ends (kind: red = link to a page that does not exist, none = page has no qualifying first link)
-           dead_end            | kind | articles_ending_here 
--------------------------------+------+----------------------
- Ecclesiastical                | none |                  502
- Lunar_eclipse                 | none |                  362
- London,_Ontario               | none |                  273
- Exoteric                      | none |                  177
- Geo-cultural_region           | red  |                  164
- Gaumee_Film_Awards            | none |                  120
- Ancient_roman                 | red  |                   78
- Ecological_reserves_of_Quebec | none |                   71
- Dignitary                     | none |                   68
- Mount_Baloy                   | red  |                   48
- Asia_Pacific_Screen_Academy   | red  |                   44
- Linguistic_norm               | none |                   38
- Translation_of_gods           | red  |                   37
- Bimonthly                     | none |                   37
- Serial_entrepreneurship       | none |                   37
+== Biggest dead ends (kind: red = link to a page that does not exist, redirect = first link is a redirect that never resolves, none = page has no qualifying first link)
+           dead_end            |   kind   | articles_ending_here 
+-------------------------------+----------+----------------------
+ Ecclesiastical                | none     |                  502
+ Lunar_eclipse                 | redirect |                  362
+ London,_Ontario               | none     |                  273
+ Exoteric                      | none     |                  177
+ Geo-cultural_region           | red      |                  164
+ Gaumee_Film_Awards            | none     |                  120
+ Ancient_roman                 | red      |                   78
+ Ecological_reserves_of_Quebec | none     |                   71
+ Dignitary                     | none     |                   68
+ Mount_Baloy                   | red      |                   48
+ Asia_Pacific_Screen_Academy   | red      |                   44
+ Linguistic_norm               | none     |                   38
+ Serial_entrepreneurship       | none     |                   37
+ Bimonthly                     | none     |                   37
+ Translation_of_gods           | red      |                   37
 
 
 == Dead ends by kind
- kind | dead_ends | articles_trapped 
-------+-----------+------------------
- none |     32137 |            36252
- red  |     28300 |            33518
+   kind   | dead_ends | articles_trapped 
+----------+-----------+------------------
+ none     |     31576 |            35208
+ red      |     28300 |            33518
+ redirect |       561 |             1044
 
 
 == Biggest cycles
@@ -575,7 +577,7 @@ Timing is off.
      5511 |         2 | Ski -> Skiing
      3560 |         2 | History_of_Canadian_sports -> Sports_in_Canada
 
-===== report skip_parens  21:45:15
+===== report skip_parens  17:15:52
 Timing is off.
 
 ################  rule = skip_parens ( only parenthesized links skipped )################
@@ -588,7 +590,7 @@ Timing is off.
  dead_end      |   172938 |  2.39 |       1.92 |         79
 
 
-== Clicks-to-Philosophy distribution (buckets of 1 up to 30, then 10)
+== Clicks-to-Philosophy distribution (buckets of 1 up to 29, then 10)
  clicks | sort_key | articles 
 --------+----------+----------
  0      |        0 |        1
@@ -621,8 +623,7 @@ Timing is off.
  27     |       27 |     1256
  28     |       28 |      307
  29     |       29 |      284
- 30     |       30 |      123
- 30-39  |       31 |       72
+ 30-39  |       30 |      195
  40-49  |       40 |        6
 
 
@@ -647,7 +648,7 @@ Timing is off.
  Philosophy -> Existence -> Reality
 
 
-== Biggest dead ends (kind: red = link to a page that does not exist, none = page has no qualifying first link)
+== Biggest dead ends (kind: red = link to a page that does not exist, redirect = first link is a redirect that never resolves, none = page has no qualifying first link)
                       dead_end                       | kind | articles_ending_here 
 -----------------------------------------------------+------+----------------------
  Erling_Sivertsen                                    | red  |                 4615
@@ -668,10 +669,11 @@ Timing is off.
 
 
 == Dead ends by kind
- kind | dead_ends | articles_trapped 
-------+-----------+------------------
- none |      8636 |            34005
- red  |     77524 |           138933
+   kind   | dead_ends | articles_trapped 
+----------+-----------+------------------
+ none     |      8434 |            33388
+ red      |     77524 |           138933
+ redirect |       202 |              617
 
 
 == Biggest cycles
@@ -688,7 +690,7 @@ Timing is off.
     69899 |         2 | East_Renfrewshire_(constituency) -> Renfrewshire_(UK_Parliament_constituency)
     67436 |         2 | UK_(disambiguation) -> United_Kingdom
 
-===== report skip_italics  21:45:18
+===== report skip_italics  17:15:56
 Timing is off.
 
 ################  rule = skip_italics ( only italicized links skipped )################
@@ -701,7 +703,7 @@ Timing is off.
  dead_end      |   168598 |  2.33 |       1.88 |         79
 
 
-== Clicks-to-Philosophy distribution (buckets of 1 up to 30, then 10)
+== Clicks-to-Philosophy distribution (buckets of 1 up to 29, then 10)
  clicks | sort_key | articles 
 --------+----------+----------
  0      |        0 |        1
@@ -734,8 +736,7 @@ Timing is off.
  27     |       27 |     7829
  28     |       28 |     6560
  29     |       29 |     4191
- 30     |       30 |     3336
- 30-39  |       31 |     4619
+ 30-39  |       30 |     7955
  40-49  |       40 |       87
  50-59  |       50 |       36
 
@@ -761,7 +762,7 @@ Timing is off.
  Philosophy -> Ancient_Greek -> Athena_Parthenos -> Chryselephantine_sculpture -> Gold -> Chemical_element -> Chemical_species -> Chemical_nomenclature -> Systematic_name -> Substance_(chemistry) -> Chemistry -> Outline_of_chemistry -> Outline_(list) -> List -> Information -> Abstract_and_concrete
 
 
-== Biggest dead ends (kind: red = link to a page that does not exist, none = page has no qualifying first link)
+== Biggest dead ends (kind: red = link to a page that does not exist, redirect = first link is a redirect that never resolves, none = page has no qualifying first link)
                       dead_end                       | kind | articles_ending_here 
 -----------------------------------------------------+------+----------------------
  Erling_Sivertsen                                    | red  |                 4602
@@ -782,10 +783,11 @@ Timing is off.
 
 
 == Dead ends by kind
- kind | dead_ends | articles_trapped 
-------+-----------+------------------
- none |     14469 |            40321
- red  |     69484 |           128277
+   kind   | dead_ends | articles_trapped 
+----------+-----------+------------------
+ none     |     14270 |            39783
+ red      |     69484 |           128277
+ redirect |       199 |              538
 
 
 == Biggest cycles
@@ -802,7 +804,7 @@ Timing is off.
     89091 |         2 | Existence -> Reality
     71573 |         2 | East_Renfrewshire_(constituency) -> Renfrewshire_(UK_Parliament_constituency)
 
-===== report loose  21:45:22
+===== report loose  17:15:59
 Timing is off.
 
 ################  rule = loose ( only template links skipped (the loose rule) )################
@@ -815,7 +817,7 @@ Timing is off.
  dead_end      |    59797 |  0.82 |       0.73 |          7
 
 
-== Clicks-to-Philosophy distribution (buckets of 1 up to 30, then 10)
+== Clicks-to-Philosophy distribution (buckets of 1 up to 29, then 10)
  clicks  | sort_key | articles 
 ---------+----------+----------
  0       |        0 |        1
@@ -848,8 +850,7 @@ Timing is off.
  27      |       27 |     2132
  28      |       28 |     1440
  29      |       29 |      438
- 30      |       30 |       72
- 30-39   |       31 |       88
+ 30-39   |       30 |      160
  40-49   |       40 |       39
  50-59   |       50 |       27
  60-69   |       60 |       19
@@ -890,31 +891,32 @@ Timing is off.
  Philosophy -> Ancient_Greek -> Greek_language -> Indo-European_languages -> Language_family -> Language -> Communication -> Information -> Abstract_and_concrete
 
 
-== Biggest dead ends (kind: red = link to a page that does not exist, none = page has no qualifying first link)
-                    dead_end                    | kind | articles_ending_here 
-------------------------------------------------+------+----------------------
- Ecclesiastical                                 | none |                  504
- Lunar_eclipse                                  | none |                  362
- London,_Ontario                                | none |                  262
- Exoteric                                       | none |                  170
- Geo-cultural_region                            | red  |                  159
- Gaumee_Film_Awards                             | none |                  112
- Ancient_roman                                  | red  |                   76
- Ecological_reserves_of_Quebec                  | none |                   71
- Dignitary                                      | none |                   67
- Mount_Baloy                                    | red  |                   48
- Saída_do_Pessoal_Operário_da_Fábrica_Confiança | red  |                   47
- Asia_Pacific_Screen_Academy                    | red  |                   41
- Bimonthly                                      | none |                   40
- Translation_of_gods                            | red  |                   38
- Serial_entrepreneurship                        | none |                   37
+== Biggest dead ends (kind: red = link to a page that does not exist, redirect = first link is a redirect that never resolves, none = page has no qualifying first link)
+                    dead_end                    |   kind   | articles_ending_here 
+------------------------------------------------+----------+----------------------
+ Ecclesiastical                                 | none     |                  504
+ Lunar_eclipse                                  | redirect |                  362
+ London,_Ontario                                | none     |                  262
+ Exoteric                                       | none     |                  170
+ Geo-cultural_region                            | red      |                  159
+ Gaumee_Film_Awards                             | none     |                  112
+ Ancient_roman                                  | red      |                   76
+ Ecological_reserves_of_Quebec                  | none     |                   71
+ Dignitary                                      | none     |                   67
+ Mount_Baloy                                    | red      |                   48
+ Saída_do_Pessoal_Operário_da_Fábrica_Confiança | red      |                   47
+ Asia_Pacific_Screen_Academy                    | red      |                   41
+ Bimonthly                                      | none     |                   40
+ Translation_of_gods                            | red      |                   38
+ Serial_entrepreneurship                        | none     |                   37
 
 
 == Dead ends by kind
- kind | dead_ends | articles_trapped 
-------+-----------+------------------
- none |     22215 |            25585
- red  |     28878 |            34212
+   kind   | dead_ends | articles_trapped 
+----------+-----------+------------------
+ none     |     21644 |            24520
+ red      |     28878 |            34212
+ redirect |       571 |             1065
 
 
 == Biggest cycles
@@ -931,7 +933,7 @@ Timing is off.
      5509 |         2 | Ski -> Skiing
      3554 |         2 | History_of_Canadian_sports -> Sports_in_Canada
 
-===== stats-full strict  21:45:26
+===== stats-full strict  17:16:04
 Timing is off.
 
 ################  rule = strict ( parenthesized, italicized and template links skipped )################
@@ -1043,74 +1045,74 @@ CREATE INDEX
 == One click: first link is Philosophy, common-word titles that are not obviously philosophical (random 30)
                     title                     
 ----------------------------------------------
- Liar_paradox
- Relationship_between_mathematics_and_physics
- Associative_economics
- Abstract_and_concrete
- Whole_language
- Transmodernity
- Leap_of_faith
- Ressentiment
- Kindness
- Objective_precision
- Salva_veritate
- Condition_of_possibility
- Mimpathy
- Animal_rights
- Potential_person
- Qualification_problem
- Constant_conjunction
- Eternal_return
- Bedeutung
- First_principle
- Awareness
- Spiritual_intelligence
- Ontopoetics
- Munich_phenomenology
- Euphraeus
- Happiness_pump
- Equipossibility
- Principle_of_charity
- Governmentality
+ Grouped_events
+ Metempsychosis
+ Mediocrity_principle
+ Nomology
+ Infinite_regress
  Self
+ Musica_universalis
+ Intentional_stance
+ Noumenon
+ Brain_in_a_vat
+ Alterity
+ Nomothetic
+ Supervenience
+ Pancasila
+ Potential_person
+ Frankfurt_cases
+ Relationship_between_mathematics_and_physics
+ World
+ Essence
+ Transpersonal
+ Digital_physics
+ Panopticon
+ Innovation_leadership
+ Aporia
+ Accidental_necessity
+ Chrysanthius
+ Nous
+ Incorrigibility
+ Erkenntnis
+ Evidential_existentiality
 
 
 == Two clicks, single common-word titles with their path (random 30)
-                                  path                                  
-------------------------------------------------------------------------
- Dajiao -> Taoism -> Philosophy
- Subject -> Subject_and_object_(philosophy) -> Philosophy
- Edel -> Abraham_Edel -> Philosophy
- Sparagmos -> Apollonian_and_Dionysian -> Philosophy
- Agathology -> Henology -> Philosophy
- Mereology -> Ontology -> Philosophy
- Tao -> Eastern_philosophy -> Philosophy
- Prawitz -> Dag_Prawitz -> Philosophy
- Whaddyado -> Ethical_dilemma -> Philosophy
- Dustdar -> Aramesh_Dustdar -> Philosophy
+                            path                             
+-------------------------------------------------------------
+ Technosexual -> Aesthetics -> Philosophy
  Sittlichkeit -> Georg_Wilhelm_Friedrich_Hegel -> Philosophy
- Taipingjing -> Taoism -> Philosophy
- Nezha -> Taoism -> Philosophy
- Katalepsis -> Stoicism -> Philosophy
- Sciousness -> William_James -> Philosophy
- Urooj -> Aroj_Ali_Matubbar -> Philosophy
- Hermeneutics -> Methodology -> Philosophy
- Hypokeimenon -> Metaphysics -> Philosophy
- Abdal -> Islamic_philosophy -> Philosophy
+ Soble -> Alan_Soble -> Philosophy
+ Holzamer -> Karl_Holzamer -> Philosophy
+ Creal -> Luis_de_Miranda -> Philosophy
+ Sundo -> Taoism -> Philosophy
+ Zhenren -> Taoism -> Philosophy
+ Munz -> Bernhard_Münz -> Philosophy
+ Quantity -> Property_(philosophy) -> Philosophy
+ Daojiao -> Taoism -> Philosophy
+ Edel -> Abraham_Edel -> Philosophy
+ Vallega -> Alejandro_Vallega -> Philosophy
+ Mereology -> Ontology -> Philosophy
+ Noce -> Augusto_Del_Noce -> Philosophy
+ Vorstellung -> Epistemology -> Philosophy
  Moby -> Animal_rights -> Philosophy
- Demiurge -> Platonism -> Philosophy
- Objectivity -> Subjectivity_and_objectivity_(philosophy) -> Philosophy
- Brotherhood -> Fraternity_(philosophy) -> Philosophy
- Hermarchus -> Epicureanism -> Philosophy
+ Certainty -> Epistemology -> Philosophy
+ Workmanship -> Quality_(philosophy) -> Philosophy
+ Destiny -> Predeterminism -> Philosophy
+ Epictetus -> Stoicism -> Philosophy
+ Biocomplexity -> Emergence -> Philosophy
+ Prawitz -> Dag_Prawitz -> Philosophy
  Anhedonia -> Hedonism -> Philosophy
- Manner -> Methodology -> Philosophy
- Crinis -> Stoicism -> Philosophy
- Zallinger -> Jacob_Anton_Zallinger_zum_Thurn -> Philosophy
- Commentaire -> Raymond_Aron -> Philosophy
- Causality -> Event_(philosophy) -> Philosophy
+ Abano -> Pietro_d'Abano -> Philosophy
+ Ehrenfels -> Christian_von_Ehrenfels -> Philosophy
+ Brotherhood -> Fraternity_(philosophy) -> Philosophy
+ Protoscience -> Philosophy_of_science -> Philosophy
+ Shanrendao -> Taoism -> Philosophy
+ Beckermann -> Ansgar_Beckermann -> Philosophy
+ Griesemer -> James_R._Griesemer -> Philosophy
 
 DROP TABLE
-===== stats-full parens_ok  21:45:28
+===== stats-full parens_ok  17:16:06
 Timing is off.
 
 ################  rule = parens_ok ( italicized and template links skipped; parenthesized links count )################
@@ -1173,46 +1175,46 @@ CREATE INDEX
 == Philosophy returns to itself in 9 clicks under this rule. Articles exactly that far from Philosophy (single common-word titles, random 40)
     title    | distance 
 -------------+----------
- Innara      |        9
- Botria      |        9
- Kangaraneus |        9
- Euphorbia   |        9
- Davana      |        9
- Iberodon    |        9
- Hackerville |        9
- Serradraco  |        9
- Hemitrullus |        9
- Lobetani    |        9
- Dicarpella  |        9
- Pocota      |        9
- Rove        |        9
- Velazconia  |        9
- Zeliangrong |        9
- Diamecyna   |        9
- Cochliotis  |        9
- Sicaricon   |        9
- Sagittunio  |        9
- Pozomys     |        9
- Caledanapis |        9
- Mastoides   |        9
- Nothodiplax |        9
- Kalaitzakis |        9
- Elantas     |        9
- Latobici    |        9
- Hemibrycon  |        9
- Eocarcharia |        9
- Lampre      |        9
- Coptosperma |        9
- Stenocosmia |        9
- Rhabdolona  |        9
- Eucrypta    |        9
- Ctenus      |        9
- Hexylamine  |        9
- Titanokorys |        9
- Phyllomya   |        9
- Vittina     |        9
- Chloroplus  |        9
- Biatoropsis |        9
+ Crenacantha |        9
+ Adyroma     |        9
+ Prolagus    |        9
+ Rasboroides |        9
+ Holcocoleus |        9
+ Orrhammaren |        9
+ Blogdex     |        9
+ Berganuy    |        9
+ Pez         |        9
+ Leveromyia  |        9
+ Clytosemia  |        9
+ Sestet      |        9
+ Delivery    |        9
+ Hovachelus  |        9
+ Osteocyte   |        9
+ Kuakini     |        9
+ Rhineceps   |        9
+ Canadia     |        9
+ Grzywna     |        9
+ Stylaster   |        9
+ Tovariella  |        9
+ Parasola    |        9
+ Apiotrichum |        9
+ Kisszurdok  |        9
+ Bioko       |        9
+ Yaprak      |        9
+ Anaplectes  |        9
+ Alocodon    |        9
+ Mongaku     |        9
+ Arisil      |        9
+ Orasturmia  |        9
+ Periorisma  |        9
+ Saltcrete   |        9
+ Sarabotys   |        9
+ Dumnonii    |        9
+ Brianiopsis |        9
+ Zorion      |        9
+ Lysorophia  |        9
+ Mimostedes  |        9
+ Thalna      |        9
 
 
 == Farthest chain heads (no other article links into them)
@@ -1269,76 +1271,76 @@ CREATE INDEX
 
 
 == One click: first link is Philosophy, common-word titles that are not obviously philosophical (random 30)
-                    title                     
-----------------------------------------------
- Theophrastus
- Moral_responsibility
- Agile_construction
- Musica_universalis
- Paradox_of_fiction
- Bedeutung
- Grouped_events
- Aedesia
- Supervenience
- Brainstorms
- Reincarnation
- Frankfurt_cases
- Noumenon
- Relationship_between_mathematics_and_physics
- Il_problema_della_guerra_e_le_vie_della_pace
- Innovation_leadership
- Moral_compass
- Practical_reason
- White_paper
- Environmental_hermeneutics
- Happiness_pump
- Abstract_and_concrete
- Tunnel_problem
- Evidential_existentiality
- Accidental_necessity
+              title              
+---------------------------------
  Aporia
- Euphraeus
- Metempsychosis
- Governmentality
- Process_thinking
+ Nomology
+ Environmental_hermeneutics
+ Antinomy
+ Animal_rights
+ Transpersonal
+ Practical_reason
+ Incorrigibility
+ Kindness
+ Abstract_and_concrete
+ Musica_universalis
+ Condition_of_possibility
+ Ressentiment
+ Good_and_evil
+ Transcendent_theosophy
+ Chrysanthius
+ Henology
+ Padmapadacharya
+ Noumenon
+ Architectonics
+ World
+ Personhood
+ Claim_rights_and_liberty_rights
+ Whole_language
+ Mediocrity_principle
+ Frankfurt_cases
+ Associative_economics
+ Facticity
+ Proving_too_much
+ Denotation
 
 
 == Two clicks, single common-word titles with their path (random 30)
-                                 path                                 
-----------------------------------------------------------------------
- Pujante -> José_Antonio_Pujante -> Philosophy
- Metaxy -> Platonism -> Philosophy
- Sundo -> Taoism -> Philosophy
- Abano -> Pietro_d'Abano -> Philosophy
- Harmolodics -> Philosophy_of_music -> Philosophy
- Rationality -> Quality_(philosophy) -> Philosophy
- Ideosphere -> Noosphere -> Philosophy
- Whaddyado -> Ethical_dilemma -> Philosophy
- Equanimal -> Animal_rights -> Philosophy
- Certainty -> Epistemology -> Philosophy
- Zhizha -> Taoism -> Philosophy
- Commentaire -> Raymond_Aron -> Philosophy
- Objective -> Subjectivity_and_objectivity_(philosophy) -> Philosophy
- Katharineum -> Humanism -> Philosophy
- Artmedia -> Aesthetics -> Philosophy
- Prohairesis -> Stoicism -> Philosophy
- Gellner -> Ernest_Gellner -> Philosophy
- Dercyllides -> Platonism -> Philosophy
- Huashu -> Taoism -> Philosophy
- Currere -> Postmodern_philosophy -> Philosophy
- Erasmus -> Humanism -> Philosophy
- Cyrenaics -> Hedonism -> Philosophy
- Thomasius -> Jakob_Thomasius -> Philosophy
+                                  path                                  
+------------------------------------------------------------------------
  Yubu -> Taoism -> Philosophy
- Amafinius -> Epicureanism -> Philosophy
- Formulation -> Abstract_and_concrete -> Philosophy
- Palatability -> Hedonism -> Philosophy
- Infosphere -> Metaphysics -> Philosophy
- Evandro -> Evandro_Agazzi -> Philosophy
+ Action -> Action_(philosophy) -> Philosophy
+ Shanrendao -> Taoism -> Philosophy
+ Mollien -> Félix_Ravaisson-Mollien -> Philosophy
+ Rule -> Norm_(philosophy) -> Philosophy
+ Commonweal -> Common_good -> Philosophy
+ Saudosismo -> Aesthetics -> Philosophy
+ Monosemy -> Methodology -> Philosophy
+ Moby -> Animal_rights -> Philosophy
+ Existentiell -> Existentialism -> Philosophy
+ Information -> Abstract_and_concrete -> Philosophy
  Destiny -> Predeterminism -> Philosophy
+ Soble -> Alan_Soble -> Philosophy
+ Intermedia -> Aesthetics -> Philosophy
+ Mimesis -> Aesthetics -> Philosophy
+ Psychedelia -> Aesthetics -> Philosophy
+ Antipathy -> Subject_and_object_(philosophy) -> Philosophy
+ Formulation -> Abstract_and_concrete -> Philosophy
+ Bianhua -> Taoism -> Philosophy
+ Siefert -> Annemarie_Gethmann-Siefert -> Philosophy
+ Meherabad -> Universalism -> Philosophy
+ Noeta -> Intelligible_form -> Philosophy
+ Vaihinger -> Hans_Vaihinger -> Philosophy
+ Credibility -> Subjectivity_and_objectivity_(philosophy) -> Philosophy
+ Parsimony -> Occam's_razor -> Philosophy
+ Querencia -> Metaphysics -> Philosophy
+ Objective -> Subjectivity_and_objectivity_(philosophy) -> Philosophy
+ Activity -> Action_(philosophy) -> Philosophy
+ Hareket -> Action_theory_(philosophy) -> Philosophy
+ Ensoulment -> Ancient_philosophy -> Philosophy
 
 DROP TABLE
-===== stats-full skip_parens  21:45:34
+===== stats-full skip_parens  17:16:12
 Timing is off.
 
 ################  rule = skip_parens ( only parenthesized links skipped )################
@@ -1451,76 +1453,76 @@ CREATE INDEX
 
 
 == One click: first link is Philosophy, common-word titles that are not obviously philosophical (random 30)
-                    title                     
-----------------------------------------------
- Anguish
- Claim_rights_and_liberty_rights
- Noumenon
- Filozofski_vestnik
- Intelligible_form
- Quaestio
- Transmodernity
- Moral_compass
- Supervenience
- Governmentality
+           title           
+---------------------------
+ First_principle
  Unity_of_opposites
- Hypothetical_imperative
- Potentiality_and_actuality
- Transpersonal
- Kriterion
- Embodied_embedded_cognition
- Objective_precision
+ Henology
  Euphraeus
- Noosphere
- Choiceless_awareness
- Panthoides
- Lourdes_effect
- Acatalepsy
- Personhood
- World
- Process_thinking
- Relationship_between_mathematics_and_physics
+ Gnosiology
+ Ontopoetics
+ Leap_of_faith
+ Physis
+ Ressentiment
+ Unity_of_the_proposition
+ Facticity
+ Mediocrity_principle
+ Ousia
+ Self
+ Essence
+ Evidential_existentiality
  Chrysanthius
+ Holocentric
+ Reincarnation
+ Augustiniana
+ Whole_language
+ Constant_conjunction
+ Intelligible_form
  Verisimilitude
+ Timeless_universe
+ Denotation
  Practical_reason
+ Noumenon
+ Composition_of_causes
+ Kriterion
 
 
 == Two clicks, single common-word titles with their path (random 30)
-                                  path                                  
-------------------------------------------------------------------------
- Speusippus -> Western_philosophy -> Philosophy
- Currere -> Postmodern_philosophy -> Philosophy
- Harmolodics -> Philosophy_of_music -> Philosophy
- Manner -> Methodology -> Philosophy
- Cyrenaics -> Hedonism -> Philosophy
- Sociogeny -> Ontology -> Philosophy
- Commonwealth -> Common_good -> Philosophy
- Iamblichus -> Western_philosophy -> Philosophy
- Palingenesis -> Reincarnation -> Philosophy
- Creal -> Luis_de_Miranda -> Philosophy
- Montesquieu -> Western_philosophy -> Philosophy
+                        path                         
+-----------------------------------------------------
+ Picavet -> François_Picavet -> Philosophy
+ Protoscience -> Philosophy_of_science -> Philosophy
  Whaddyado -> Ethical_dilemma -> Philosophy
- Dianoia -> Platonism -> Philosophy
- Posidonius -> Western_philosophy -> Philosophy
- Dercyllides -> Platonism -> Philosophy
+ Gilgul -> Reincarnation -> Philosophy
+ Mandle -> Jon_Mandle -> Philosophy
+ Apatheia -> Stoicism -> Philosophy
  Tussman -> Joseph_Tussman -> Philosophy
- Incorrigible -> Incorrigibility -> Philosophy
- Objective -> Subjectivity_and_objectivity_(philosophy) -> Philosophy
- Demiurge -> Platonism -> Philosophy
- Antisthenes -> Western_philosophy -> Philosophy
- Formulation -> Abstract_and_concrete -> Philosophy
- Fablok -> World -> Philosophy
+ Eubulides -> Ancient_philosophy -> Philosophy
+ Certainty -> Epistemology -> Philosophy
+ Intermedia -> Aesthetics -> Philosophy
+ Abdal -> Islamic_philosophy -> Philosophy
+ Conation -> Philosophy_of_mind -> Philosophy
+ Anapel -> Reincarnation -> Philosophy
+ Zechner -> Ingo_Zechner -> Philosophy
+ Antimony -> Antinomy -> Philosophy
+ Destiny -> Predeterminism -> Philosophy
+ Abstract -> Abstract_and_concrete -> Philosophy
+ Particular -> Metaphysics -> Philosophy
+ Philodemus -> Western_philosophy -> Philosophy
+ Noeta -> Intelligible_form -> Philosophy
+ Iamblichus -> Western_philosophy -> Philosophy
+ Socrates -> Western_philosophy -> Philosophy
+ Amalrician -> Pantheism -> Philosophy
+ Mimesis -> Aesthetics -> Philosophy
+ Epicurus -> Western_philosophy -> Philosophy
+ Noogony -> Epistemology -> Philosophy
+ Qualia -> Philosophy_of_mind -> Philosophy
+ Aenesidemus -> Western_philosophy -> Philosophy
+ Epictetus -> Western_philosophy -> Philosophy
  Ensoulment -> Ancient_philosophy -> Philosophy
- Theophrastus -> Western_philosophy -> Philosophy
- Prohairesis -> Stoicism -> Philosophy
- Aristanax -> Platonism -> Philosophy
- Taius -> Western_philosophy -> Philosophy
- Rationality -> Quality_(philosophy) -> Philosophy
- Biocomplexity -> Emergence -> Philosophy
- Objectivity -> Subjectivity_and_objectivity_(philosophy) -> Philosophy
 
 DROP TABLE
-===== stats-full skip_italics  21:45:35
+===== stats-full skip_italics  17:16:12
 Timing is off.
 
 ################  rule = skip_italics ( only italicized links skipped )################
@@ -1583,46 +1585,46 @@ CREATE INDEX
 == Philosophy returns to itself in 16 clicks under this rule. Articles exactly that far from Philosophy (single common-word titles, random 40)
     title    | distance 
 -------------+----------
- Leisurecorp |       16
- Incensole   |       16
- Paragraph   |       16
- Bioneers    |       16
- Tigervision |       16
- Ilparpa     |       16
- Jyoshna     |       16
- Ozerne      |       16
- Ole         |       16
- Hydrosol    |       16
- Lapidus     |       16
- Mereology   |       16
- Ethogenics  |       16
- Atommash    |       16
- Silverite   |       16
- Courtaulds  |       16
- Ardiaei     |       16
- Orienticius |       16
- Nuotio      |       16
- Heghine     |       16
- Smikros     |       16
- Ancaeus     |       16
- American    |       16
+ Huiva       |       16
+ Lazika      |       16
  Potnia      |       16
- Aerobiology |       16
- Sulloniacis |       16
- Pershyi     |       16
- Synej       |       16
- Podhorce    |       16
- Ramak       |       16
- Oleo        |       16
- Crilanomer  |       16
- Sparatocos  |       16
- Hardinsburg |       16
- Drayford    |       16
- Katechon    |       16
- Chichilaki  |       16
- Dialcom     |       16
- Stavyshche  |       16
- Elarji      |       16
+ Grzegorz    |       16
+ Moengo      |       16
+ Floridian   |       16
+ Mikamycin   |       16
+ Chickenfoot |       16
+ Grigol      |       16
+ Khusimol    |       16
+ Korytyshche |       16
+ Overmyer    |       16
+ Countermark |       16
+ Neocleides  |       16
+ Dioxippe    |       16
+ Vioria      |       16
+ Olotoraca   |       16
+ Gerresheim  |       16
+ Korolivka   |       16
+ Tsulukidze  |       16
+ Prohres     |       16
+ Stegobolus  |       16
+ Anadolu     |       16
+ Parcheesi   |       16
+ Sophomore   |       16
+ Iupshara    |       16
+ Helopus     |       16
+ Rosston     |       16
+ Nestorianus |       16
+ Lasinja     |       16
+ Mullakkara  |       16
+ Rrikaj      |       16
+ Mapleville  |       16
+ Vanchikulam |       16
+ Becon       |       16
+ Marowijne   |       16
+ Chertkovsky |       16
+ Hlyboke     |       16
+ Stormlord   |       16
+ Yetisports  |       16
 
 
 == Farthest chain heads (no other article links into them)
@@ -1680,74 +1682,74 @@ CREATE INDEX
 == One click: first link is Philosophy, common-word titles that are not obviously philosophical (random 30)
             title            
 -----------------------------
- Transcendental_homelessness
- Abstract_and_concrete
- Immanent_evaluation
- Mimpathy
- Supervenience
- Range_property
- Intentional_stance
- Qualification_problem
- Spiritual_intelligence
+ Associative_economics
+ Further_facts
+ Composition_of_causes
+ Kindness
  Pancasila
- White_paper
- Evidential_existentiality
- Synthese
- Deconstruction
- Augustiniana
- Disputatio
- Eternal_return
- Tunnel_problem
- Principle_of_humanity
- Henology
- Nous
- Gnosiology
- Whole_language
- Innovation_leadership
- Common_good
- Reincarnation
+ Embodied_embedded_cognition
+ Invisible_labor
+ Moral_responsibility
+ Intentional_stance
+ Architectonics
+ Essence
+ Family_resemblance
+ Dysteleology
+ Antiperistasis
+ Intelligible_form
+ Animal_rights
+ Kritike
+ Environmental_hermeneutics
+ Agile_construction
+ Ontopoetics
  Metempsychosis
- Filozofski_vestnik
+ Bedeutung
+ Infinite_divisibility
+ Potential_person
+ Emergence
  Process_thinking
- Mediocrity_principle
+ Governmentality
+ Grouped_events
+ Leap_of_faith
+ Aedesia
 
 
 == Two clicks, single common-word titles with their path (random 30)
-                          path                          
---------------------------------------------------------
- Infosphere -> Metaphysics -> Philosophy
- Parable -> Didacticism -> Philosophy
- Worldwide -> World -> Philosophy
- Cleanthes -> Western_philosophy -> Philosophy
- Heraclitus -> Western_philosophy -> Philosophy
- Picturesque -> Aesthetics -> Philosophy
- Epistle -> Didacticism -> Philosophy
- Thing -> Subject_and_object_(philosophy) -> Philosophy
- Licking -> Action_(philosophy) -> Philosophy
- Katalepsis -> Stoicism -> Philosophy
- Mandle -> Jon_Mandle -> Philosophy
- Alethiology -> Aletheia -> Philosophy
- Xenophanes -> Western_philosophy -> Philosophy
+                                 path                                 
+----------------------------------------------------------------------
+ Antipathy -> Subject_and_object_(philosophy) -> Philosophy
+ Conation -> Philosophy_of_mind -> Philosophy
+ Tawatur -> Epistemology -> Philosophy
+ Tussman -> Joseph_Tussman -> Philosophy
  Archai -> First_principle -> Philosophy
+ Plotinus -> Western_philosophy -> Philosophy
+ Carneiscus -> Epicureanism -> Philosophy
+ Iamblichus -> Western_philosophy -> Philosophy
  Fablok -> World -> Philosophy
- Samvara -> Ontology -> Philosophy
- Celso -> Celsus -> Philosophy
- Aristocreon -> Stoicism -> Philosophy
+ Ensoulment -> Ancient_philosophy -> Philosophy
+ Protoscience -> Philosophy_of_science -> Philosophy
+ Thing -> Subject_and_object_(philosophy) -> Philosophy
+ Protagoras -> Western_philosophy -> Philosophy
+ Archewell -> First_principle -> Philosophy
  Yerkish -> Ernst_von_Glasersfeld -> Philosophy
- Biofeedback -> Awareness -> Philosophy
- Information -> Abstract_and_concrete -> Philosophy
- Paracelsus -> Western_philosophy -> Philosophy
- Creal -> Luis_de_Miranda -> Philosophy
- Certainty -> Epistemology -> Philosophy
- Epictetus -> Western_philosophy -> Philosophy
- Regress -> Infinite_regress -> Philosophy
- Antisthenes -> Western_philosophy -> Philosophy
- Palatability -> Hedonism -> Philosophy
- Vorstellung -> Epistemology -> Philosophy
- Saudosismo -> Aesthetics -> Philosophy
+ Abstract -> Abstract_and_concrete -> Philosophy
+ Activity -> Action_(philosophy) -> Philosophy
+ Parable -> Didacticism -> Philosophy
+ Etyka -> Ethics -> Philosophy
+ Physiologus -> Didacticism -> Philosophy
+ Eubulides -> Ancient_philosophy -> Philosophy
+ Documentality -> Ontology -> Philosophy
+ Querencia -> Metaphysics -> Philosophy
+ Epicurus -> Western_philosophy -> Philosophy
+ Aristippus -> Western_philosophy -> Philosophy
+ Manner -> Methodology -> Philosophy
+ Objective -> Subjectivity_and_objectivity_(philosophy) -> Philosophy
+ Gaze -> Awareness -> Philosophy
+ Taius -> Western_philosophy -> Philosophy
+ Anapel -> Reincarnation -> Philosophy
 
 DROP TABLE
-===== stats-full loose  21:45:36
+===== stats-full loose  17:16:13
 Timing is off.
 
 ################  rule = loose ( only template links skipped (the loose rule) )################
@@ -1810,46 +1812,46 @@ CREATE INDEX
 == Philosophy returns to itself in 9 clicks under this rule. Articles exactly that far from Philosophy (single common-word titles, random 40)
     title    | distance 
 -------------+----------
- Temnoscelis |        9
- Jellyella   |        9
- Bubble      |        9
- Hesitation  |        9
- Daviesa     |        9
- Pareuchelus |        9
- Entypesa    |        9
- Matzor      |        9
- Hylaeamys   |        9
- Helichrysum |        9
- Godinotia   |        9
- Carinomitra |        9
- Pommerhelix |        9
- Sekaliporus |        9
- Scelophysa  |        9
- Olca        |        9
- Bilophila   |        9
- Cyclopera   |        9
- Hellyeah    |        9
- Falacer     |        9
- Quensel     |        9
- Etaxalus    |        9
- Xenomerius  |        9
- Karutia     |        9
- Oenomys     |        9
- Katona      |        9
- Porhydrus   |        9
- Mefenacet   |        9
- Zagrotes    |        9
- Tisnaren    |        9
- Parula      |        9
- Agnoderus   |        9
- Prolita     |        9
- Antemus     |        9
- Hybomyia    |        9
- Spilotes    |        9
- Aburasoba   |        9
- Onigocia    |        9
- Utharomyces |        9
- Geiselbach  |        9
+ Isorropodon |        9
+ Catellus    |        9
+ Paxilline   |        9
+ Papper      |        9
+ Ramularius  |        9
+ Lyperanthus |        9
+ Melophorus  |        9
+ Lampichthys |        9
+ Nguba       |        9
+ Pfaff       |        9
+ Lufax       |        9
+ Tologuica   |        9
+ Drobeta     |        9
+ Syphax      |        9
+ Arhopala    |        9
+ Antiblemma  |        9
+ Bathroxena  |        9
+ Ithomeis    |        9
+ Dicellopyge |        9
+ Deltiology  |        9
+ Lecanomerus |        9
+ Sindara     |        9
+ Conophis    |        9
+ Amphiporida |        9
+ Brychius    |        9
+ Bulolispa   |        9
+ Sulpicio    |        9
+ Titoceres   |        9
+ Glose       |        9
+ Scopelopsis |        9
+ Microcara   |        9
+ Pfaffia     |        9
+ Ojaste      |        9
+ Paragnorima |        9
+ Callidemum  |        9
+ Leucozonia  |        9
+ Qenko       |        9
+ Myiotrixa   |        9
+ Ostanes     |        9
+ Takanakuy   |        9
 
 
 == Farthest chain heads (no other article links into them)
@@ -1906,72 +1908,72 @@ CREATE INDEX
 
 
 == One click: first link is Philosophy, common-word titles that are not obviously philosophical (random 30)
-            title            
------------------------------
- Liar_paradox
- Holocentric
- Nomology
- Qualification_problem
- Aletheia
- Principle_of_humanity
- Evidential_existentiality
- Embodied_embedded_cognition
- Incorrigibility
- Environmental_hermeneutics
- Verisimilitude
- Invisible_labor
+           title            
+----------------------------
+ Grouped_events
  Denotation
- Potentiality_and_actuality
  Common_good
- Mimpathy
- Potential_person
- Alterity
- Nomothetic
- Choiceless_awareness
- Practical_reason
- Original_position
- Temporality
- Objective_precision
- Frankfurt_cases
+ Noumenon
+ Lourdes_effect
+ Principle_of_humanity
+ White_paper
+ Nous
+ Aufheben
+ Holocentric
+ Antiperistasis
+ Deconstruction
+ Physis
+ Management_fad
+ Padmapadacharya
+ Infinite_divisibility
+ Infinite_regress
+ Unknowability
+ Intelligible_form
  Chevengur
- Condition_of_possibility
- Paradox_of_fiction
- Transcendent_theosophy
- Moral_responsibility
+ Frankfurt_cases
+ Aletheia
+ Supervenience
+ Environmental_hermeneutics
+ Constant_conjunction
+ Aporia
+ Governmentality
+ Liar_paradox
+ Immanent_evaluation
+ Brain_in_a_vat
 
 
 == Two clicks, single common-word titles with their path (random 30)
-                             path                              
----------------------------------------------------------------
- Taipingjing -> Taoism -> Philosophy
- Impossibility -> Epistemic_possibility -> Philosophy
- Anapel -> Reincarnation -> Philosophy
- Vorstellung -> Epistemology -> Philosophy
- Noos -> Nous -> Philosophy
- Wenzi -> Taoism -> Philosophy
- Punarjanma -> Reincarnation -> Philosophy
- Kind -> Kindness -> Philosophy
- Anavastha -> Infinite_regress -> Philosophy
- Vanitas -> Temporality -> Philosophy
- Psychedelia -> Aesthetics -> Philosophy
- Gassendi -> Pierre_Gassendi -> Philosophy
- Erasmus -> Humanism -> Philosophy
- Atonement -> Action_(philosophy) -> Philosophy
- Hume -> David_Hume -> Philosophy
- Katalepsis -> Stoicism -> Philosophy
- Tussman -> Joseph_Tussman -> Philosophy
- Qalb -> Islamic_philosophy -> Philosophy
- Vallega -> Alejandro_Vallega -> Philosophy
- Cyrenaics -> Hedonism -> Philosophy
- Noesis -> Nous -> Philosophy
- Massumi -> Brian_Massumi -> Philosophy
- Megill -> Kenneth_Megill -> Philosophy
- Schelling -> Friedrich_Wilhelm_Joseph_Schelling -> Philosophy
- Antipathy -> Subject_and_object_(philosophy) -> Philosophy
- Huashu -> Taoism -> Philosophy
- Unshrinking -> Kate_Manne -> Philosophy
+                        path                         
+-----------------------------------------------------
+ Ontotheology -> Ontology -> Philosophy
  Nezha -> Taoism -> Philosophy
- Desboulmiers -> David_Hume -> Philosophy
- Palatability -> Hedonism -> Philosophy
+ Moby -> Animal_rights -> Philosophy
+ Anavastha -> Infinite_regress -> Philosophy
+ Universality -> Universalism -> Philosophy
+ Bandrowski -> Bronisław_Bandrowski -> Philosophy
+ Shingaku -> Ishida_Baigan -> Philosophy
+ Levinas -> Emmanuel_Levinas -> Philosophy
+ Punarjanma -> Reincarnation -> Philosophy
+ Odoyevsky -> Vladimir_Odoyevsky -> Philosophy
+ Prohairesis -> Stoicism -> Philosophy
+ Abdal -> Islamic_philosophy -> Philosophy
+ Formulation -> Abstract_and_concrete -> Philosophy
+ Ibbur -> Reincarnation -> Philosophy
+ Griesemer -> James_R._Griesemer -> Philosophy
+ Prefaces -> Søren_Kierkegaard -> Philosophy
+ Commonwealth -> Common_good -> Philosophy
+ Siefert -> Annemarie_Gethmann-Siefert -> Philosophy
+ Sciousness -> William_James -> Philosophy
+ Huahujing -> Taoism -> Philosophy
+ Thymology -> Praxeology -> Philosophy
+ Schwegler -> Albert_Schwegler -> Philosophy
+ Infosphere -> Metaphysics -> Philosophy
+ Philodemus -> Epicureanism -> Philosophy
+ Epistle -> Didacticism -> Philosophy
+ Shanrendao -> Taoism -> Philosophy
+ Herrigel -> Eugen_Herrigel -> Philosophy
+ Parable -> Didacticism -> Philosophy
+ Haugeland -> John_Haugeland -> Philosophy
+ Pujante -> José_Antonio_Pujante -> Philosophy
 
 DROP TABLE
