@@ -19,8 +19,8 @@ WHERE p.in_dump AND NOT p.is_redirect
 GROUP BY 1 ORDER BY 2 DESC;
 
 \echo
-\echo '== Clicks-to-Philosophy distribution (buckets of 1 up to 30, then 10)'
-SELECT CASE WHEN t.distance <= 30 THEN t.distance::text
+\echo '== Clicks-to-Philosophy distribution (buckets of 1 up to 29, then 10)'
+SELECT CASE WHEN t.distance < 30 THEN t.distance::text
             ELSE (t.distance / 10 * 10)::text || '-' || (t.distance / 10 * 10 + 9)::text END AS clicks,
        min(t.distance) AS sort_key, count(*) AS articles
 FROM :topo t JOIN wiki_pages p ON p.id = t.page_id
@@ -47,8 +47,8 @@ SELECT string_agg(w.title, ' -> ' ORDER BY c.pos) AS chain
 FROM chain c JOIN wiki_pages w ON w.id = c.id;
 
 \echo
-\echo '== Biggest dead ends (kind: red = link to a page that does not exist, none = page has no qualifying first link)'
-SELECT s.title AS dead_end, CASE WHEN s.in_dump THEN 'none' ELSE 'red' END AS kind, count(*) AS articles_ending_here
+\echo '== Biggest dead ends (kind: red = link to a page that does not exist, redirect = first link is a redirect that never resolves, none = page has no qualifying first link)'
+SELECT s.title AS dead_end, CASE WHEN NOT s.in_dump THEN 'red' WHEN s.:tgt IS NOT NULL THEN 'redirect' ELSE 'none' END AS kind, count(*) AS articles_ending_here
 FROM :topo t
 JOIN wiki_pages p ON p.id = t.page_id
 JOIN wiki_pages s ON s.id = t.terminal_id
@@ -57,7 +57,7 @@ GROUP BY 1, 2 ORDER BY 3 DESC LIMIT 15;
 
 \echo
 \echo '== Dead ends by kind'
-SELECT CASE WHEN s.in_dump THEN 'none' ELSE 'red' END AS kind, count(DISTINCT s.id) AS dead_ends, count(*) AS articles_trapped
+SELECT CASE WHEN NOT s.in_dump THEN 'red' WHEN s.:tgt IS NOT NULL THEN 'redirect' ELSE 'none' END AS kind, count(DISTINCT s.id) AS dead_ends, count(*) AS articles_trapped
 FROM :topo t
 JOIN wiki_pages p ON p.id = t.page_id
 JOIN wiki_pages s ON s.id = t.terminal_id
