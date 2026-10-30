@@ -12,8 +12,10 @@ SET client_min_messages = warning;   -- hide 'does not exist, skipping' notices
 SELECT id AS philosophy_id FROM wiki_pages WHERE title = 'Philosophy' \gset
 
 DROP TABLE IF EXISTS :topo, :cyc;
+-- No primary key during the BFS inserts (maintaining it costs ~36% of pass 1);
+-- it is added after pass 2c, where it doubles as the "visited once" assertion.
 CREATE UNLOGGED TABLE :topo (
-    page_id       INTEGER PRIMARY KEY,   -- PK doubles as the "visited once" assertion
+    page_id       INTEGER NOT NULL,
     terminal_type TEXT    NOT NULL,      -- 'philosophy' | 'dead_end' | 'cycle'
     terminal_id   INTEGER NOT NULL,      -- Philosophy, the sink, or the cycle's canonical (min id) node
     distance      INTEGER NOT NULL       -- clicks to the terminal; 0 = is the terminal
@@ -45,32 +47,22 @@ SELECT page_id, terminal_type, terminal_id, distance FROM back;
 
 RESET enable_mergejoin;
 RESET enable_hashjoin;
+ANALYZE :topo;   -- without stats (and no PK yet) pass 2a picks a serial hash anti-join, ~6x slower
 
 -- Pass 2a: the rest end in cycles. Unclassified nodes only point at
 -- unclassified nodes, so stripping in-degree-0 nodes to a fixpoint leaves
--- exactly the cycle members.
+-- exactly the cycle members. strip_leaves is defined once, in sql/01_load.sql,
+-- and also builds the (id) index on :cyc used by pass 2b.
 CREATE UNLOGGED TABLE :cyc AS
 SELECT p.id, p.:col AS next_id
 FROM wiki_pages p
 WHERE NOT EXISTS (SELECT 1 FROM :topo t WHERE t.page_id = p.id);
 CREATE INDEX ON :cyc (next_id);
 
-CREATE OR REPLACE FUNCTION strip_leaves(tbl regclass) RETURNS int LANGUAGE plpgsql AS $$
-DECLARE n bigint; rounds int := 0;
-BEGIN
-  LOOP
-    EXECUTE format('DELETE FROM %s c WHERE NOT EXISTS (SELECT 1 FROM %s d WHERE d.next_id = c.id)', tbl, tbl);
-    GET DIAGNOSTICS n = ROW_COUNT;
-    rounds := rounds + 1;
-    EXIT WHEN n = 0;
-  END LOOP;
-  RETURN rounds;
-END $$;
 SELECT strip_leaves(:'cyc') AS leaf_stripping_rounds;
 
 -- Pass 2b: canonical id and length per cycle, by walking each cycle once around.
 ALTER TABLE :cyc ADD COLUMN cycle_id INTEGER, ADD COLUMN cycle_len INTEGER;
-CREATE INDEX ON :cyc (id);
 ANALYZE :cyc;
 WITH RECURSIVE walk AS (
     SELECT id AS start_id, next_id AS cur, 1 AS len FROM :cyc
@@ -88,8 +80,10 @@ FROM summary s WHERE s.start_id = c.id;
 -- Pass 2c: backward BFS from the cycle members, never stepping onto a member
 -- nor onto Philosophy, which is already classified and may itself be a tail
 -- of another cycle (strict rule: Philosophy -> Existence -> Reality -> Existence).
+-- Only merge join is disabled here: the main join stays a nested loop on the
+-- next_<rule> index, and the membership test hashes the small :cyc table
+-- (Hash Anti Join) instead of probing it once per walked row.
 SET enable_mergejoin = off;
-SET enable_hashjoin  = off;
 INSERT INTO :topo
 WITH RECURSIVE back AS (
     SELECT id AS page_id, 'cycle'::text AS terminal_type, cycle_id AS terminal_id, 0 AS distance
@@ -103,8 +97,8 @@ WITH RECURSIVE back AS (
 )
 SELECT page_id, terminal_type, terminal_id, distance FROM back;
 RESET enable_mergejoin;
-RESET enable_hashjoin;
 
+ALTER TABLE :topo ADD PRIMARY KEY (page_id);   -- assertion: every node visited once
 CREATE INDEX ON :topo (terminal_type, terminal_id);
 ANALYZE :topo; ANALYZE :cyc;
 
