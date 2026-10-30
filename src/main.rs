@@ -14,6 +14,10 @@ use std::time::Instant;
 
 static PAGES_PROCESSED: AtomicU64 = AtomicU64::new(0);
 static BYTES_CONSUMED: AtomicU64 = AtomicU64::new(0);
+/// Batches whose XML stopped parsing early / whose bzip2 data failed to
+/// decode. Either one means the CSV is incomplete, so `main` fails.
+static XML_ERRORS: AtomicU64 = AtomicU64::new(0);
+static BZ_ERRORS: AtomicU64 = AtomicU64::new(0);
 
 const DEFAULT_DUMP: &str = "enwiki-20261001-pages-articles-multistream.xml.bz2";
 const DEFAULT_OUTPUT_CSV: &str = "wiki_edges.csv";
@@ -96,7 +100,8 @@ fn markup_skip_len(s: &[u8]) -> Option<usize> {
         }
         j = k + 1;
     }
-    Some(s.len())
+    // Unclosed: MediaWiki renders the opener as literal text, so keep scanning.
+    None
 }
 
 /// True when a link target points outside the main article namespace
@@ -110,12 +115,65 @@ fn is_namespaced(target: &str) -> bool {
     match t.split_once(':') {
         None => false,
         Some((prefix, _)) => {
-            let p = prefix.trim().to_ascii_lowercase();
+            // The language-code heuristic looks at the prefix as written:
+            // interwiki codes are lower-case ("fr:", "zh-yue:"), titles are not.
+            let raw = prefix.trim();
+            let p = raw.to_ascii_lowercase();
             NON_ARTICLE_PREFIXES.contains(&p.as_str())
-                || ((2..=12).contains(&p.len())
-                    && p.bytes().all(|c| c.is_ascii_lowercase() || c == b'-'))
+                || ((2..=12).contains(&raw.len())
+                    && raw.bytes().all(|c| c.is_ascii_lowercase() || c == b'-'))
         }
     }
+}
+
+/// The character an HTML entity body (between `&` and `;`) stands for.
+fn decode_entity(name: &str) -> Option<char> {
+    if let Some(num) = name.strip_prefix('#') {
+        let code = match num.strip_prefix(['x', 'X']) {
+            Some(hex) => u32::from_str_radix(hex, 16).ok()?,
+            None => num.parse().ok()?,
+        };
+        return char::from_u32(code);
+    }
+    Some(match name {
+        "amp" => '&',
+        "apos" => '\'',
+        "gt" => '>',
+        "lt" => '<',
+        "mdash" => '—',
+        "nbsp" => ' ',
+        "ndash" => '–',
+        "quot" => '"',
+        _ => return None,
+    })
+}
+
+/// Decode HTML entities in one left-to-right pass, so `&amp;quot;` becomes
+/// `&quot;` rather than `"`. Unknown or malformed references stay literal.
+fn decode_entities(s: &str) -> Cow<'_, str> {
+    if !s.contains('&') {
+        return Cow::Borrowed(s);
+    }
+    let mut out = String::with_capacity(s.len());
+    let mut rest = s;
+    while let Some(p) = rest.find('&') {
+        out.push_str(&rest[..p]);
+        let after = &rest[p + 1..];
+        // Longest supported body is "#x10FFFF" / "mdash"; 10 bytes is ample.
+        let semi = after.bytes().take(10).position(|c| c == b';');
+        match semi.and_then(|k| decode_entity(&after[..k]).map(|c| (c, k))) {
+            Some((c, k)) => {
+                out.push(c);
+                rest = &after[k + 1..];
+            }
+            None => {
+                out.push('&');
+                rest = after;
+            }
+        }
+    }
+    out.push_str(rest);
+    Cow::Owned(out)
 }
 
 /// Canonical page-title form: anchor stripped, whitespace collapsed to `_`,
@@ -123,16 +181,16 @@ fn is_namespaced(target: &str) -> bool {
 fn normalize_title(raw: &str) -> Option<String> {
     // MediaWiki decodes HTML entities in link targets; the XML layer only
     // decoded the XML ones. A target still holding markup is not a title.
-    let decoded = raw
-        .replace("&nbsp;", " ")
-        .replace("&amp;", "&")
-        .replace("&quot;", "\"")
-        .replace("&#39;", "'");
+    let decoded = decode_entities(raw);
     if decoded.contains(['{', '}', '<', '>', '[', ']', '|']) {
         return None;
     }
     let no_anchor = decoded.split('#').next().unwrap_or("");
-    let joined = no_anchor.split_whitespace().collect::<Vec<_>>().join("_");
+    let joined = no_anchor
+        .split(|c: char| c.is_whitespace() || c == '_')
+        .filter(|s| !s.is_empty())
+        .collect::<Vec<_>>()
+        .join("_");
     let trimmed = joined.trim_matches('_');
     let mut chars = trimmed.chars();
     let first = chars.next()?;
@@ -197,6 +255,14 @@ fn find_first_links(text: &str) -> Vec<Option<String>> {
                 let mut j = start;
                 while j < n && !matches!(b[j], b'|' | b']' | b'[' | b'\n') {
                     j += 1;
+                }
+                // Only `|` or `]]` closes a target; `[[Foo\n`, `[[Foo]` and
+                // `[[Foo[[Bar]]` are literal text. Captions may span lines.
+                let closed = j < n
+                    && (b[j] == b'|' || (b[j] == b']' && j + 1 < n && b[j + 1] == b']'));
+                if !closed {
+                    i += 2;
+                    continue;
                 }
                 let target = &text[start..j];
 
@@ -354,7 +420,8 @@ fn process_xml(xml: &[u8], sample_nulls: bool) -> Vec<Row> {
             },
             Ok(Event::Eof) => break,
             Err(e) => {
-                eprintln!("XML warning (fragment skipped from here): {:?}", e);
+                XML_ERRORS.fetch_add(1, Ordering::Relaxed);
+                eprintln!("XML error (rest of batch skipped): {:?}", e);
                 break;
             }
             _ => {}
@@ -364,17 +431,32 @@ fn process_xml(xml: &[u8], sample_nulls: bool) -> Vec<Row> {
     rows
 }
 
-/// Byte offsets of every bzip2 stream header (`BZh<1-9>` + block magic
-/// `1AY&SY`) in the mapped file. Each multistream chunk is its own stream.
-fn stream_starts(data: &[u8]) -> Vec<usize> {
-    let mut starts = Vec::with_capacity(data.len() / 400_000);
-    for pos in memmem::find_iter(data, b"1AY&SY") {
-        if pos >= 4 && &data[pos - 4..pos - 1] == b"BZh" && data[pos - 1].is_ascii_digit() {
-            starts.push(pos - 4);
-        }
-    }
-    starts
+/// Byte offset of the bzip2 stream header (`BZh<1-9>`) when block magic
+/// `1AY&SY` found at `pos` is the first block of a stream.
+fn stream_start_at(data: &[u8], pos: usize) -> Option<usize> {
+    let h = pos.checked_sub(4)?;
+    (data.get(h..pos - 1)? == b"BZh" && data[pos - 1].is_ascii_digit()).then_some(h)
 }
+
+/// A real multistream dump holds a siteinfo stream plus one stream per 100
+/// pages (well under 16 MB each). Fewer streams than that means a
+/// single-stream or foreign file, whose one batch would span the whole input.
+fn check_multistream(n_streams: usize, len: usize) -> Result<(), String> {
+    if n_streams < 2 || n_streams < len / (16 << 20) {
+        return Err(format!("not a multistream dump ({n_streams} streams in {len} bytes)"));
+    }
+    Ok(())
+}
+
+/// Cap on the per-batch decompression buffer reservation; it still grows
+/// past this if a batch really is larger.
+const MAX_XML_PREALLOC: usize = 256 << 20;
+
+/// Most batches handed out but not yet written, which bounds the writer's
+/// reorder buffer. A batch of rows is ~800 titles plus targets (well under
+/// 1 MB), so the buffer stays in the tens of MB; 128 is several times the
+/// worker count, so workers never starve on credit in steady state.
+const BATCH_WINDOW: usize = 128;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let start_time = Instant::now();
@@ -414,13 +496,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let total_bytes = data.len() as u64;
 
     let output_csv = std::env::var("OUTPUT_CSV").unwrap_or_else(|_| DEFAULT_OUTPUT_CSV.to_string());
-    let out_file = File::create(&output_csv)?;
+    // Written under a temporary name and renamed only once the run is known
+    // complete, so an abort never leaves a truncated CSV at `output_csv`.
+    let output_tmp = format!("{output_csv}.tmp");
+    let out_file = File::create(&output_tmp)?;
     let mut writer = BufWriter::with_capacity(4 << 20, out_file);
     let header: Vec<String> = RULES.iter().map(|(name, _)| format!("{}_target_title", name)).collect();
     writeln!(writer, "title,{},is_redirect", header.join(","))?;
 
     let mut null_writer = match &null_sample_path {
-        Some(p) => Some(BufWriter::new(File::create(p)?)),
+        Some(p) => Some(BufWriter::new(File::create(format!("{p}.tmp"))?)),
         None => None,
     };
     let sample_nulls = null_writer.is_some();
@@ -428,33 +513,60 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // (batch index, byte range) of STREAMS_PER_BATCH consecutive streams.
     let (tx_batches, rx_batches) = bounded::<(usize, usize, usize)>(64);
     let (tx_results, rx_results) = bounded::<(usize, Vec<Row>)>(64);
+    // Credit window: the scanner takes a token before handing out a batch and
+    // the writer returns one per batch written, so at most BATCH_WINDOW
+    // batches are in flight and the reorder buffer `pending` stays bounded
+    // even while one slow batch holds up `next_idx`.
+    let (tx_credit, rx_credit) = bounded::<()>(BATCH_WINDOW);
+    for _ in 0..BATCH_WINDOW {
+        tx_credit.try_send(()).map_err(|_| "credit channel full while priming")?;
+    }
 
     // THREAD 1: scan the mapped file for stream headers and hand out ranges.
-    let scanner = std::thread::spawn(move || {
-        let starts = stream_starts(data);
-        println!("Found {} bzip2 streams in {:.1}s", starts.len(), start_time.elapsed().as_secs_f64());
+    // Batch k is sent as soon as the start of batch k+1 is known, so workers
+    // begin while the scan is still running.
+    // Returns the number of batches sent.
+    let scanner = std::thread::spawn(move || -> Result<usize, String> {
         // MAX_BATCHES=<n> stops after n batches, for benchmarking.
         let max_batches: usize = std::env::var("MAX_BATCHES").ok().and_then(|v| v.parse().ok()).unwrap_or(usize::MAX);
+        let mut starts: Vec<usize> = Vec::with_capacity(data.len() / 400_000);
         let mut idx = 0;
-        for group in starts.chunks(STREAMS_PER_BATCH).take(max_batches) {
-            let begin = group[0];
-            let end = starts
-                .get(idx * STREAMS_PER_BATCH + group.len())
-                .copied()
-                .unwrap_or(data.len());
-            if tx_batches.send((idx, begin, end)).is_err() {
+        for start in memmem::find_iter(data, b"1AY&SY").filter_map(|pos| stream_start_at(data, pos)) {
+            starts.push(start);
+            if idx >= max_batches {
                 break;
             }
+            // starts[idx*S] begins batch idx; starts[(idx+1)*S] ends it.
+            if starts.len() == (idx + 1) * STREAMS_PER_BATCH + 1 {
+                let (begin, end) = (starts[idx * STREAMS_PER_BATCH], start);
+                // Either failing means the writer is gone: stop handing out work.
+                if rx_credit.recv().is_err() || tx_batches.send((idx, begin, end)).is_err() {
+                    return Ok(idx);
+                }
+                idx += 1;
+            }
+        }
+        if idx >= max_batches {
+            return Ok(idx);
+        }
+        println!("Found {} bzip2 streams in {:.1}s", starts.len(), start_time.elapsed().as_secs_f64());
+        check_multistream(starts.len(), data.len())?;
+        if let Some(&begin) = starts.get(idx * STREAMS_PER_BATCH)
+            && rx_credit.recv().is_ok()
+            && tx_batches.send((idx, begin, data.len())).is_ok()
+        {
             idx += 1;
         }
+        Ok(idx)
     });
 
     // THREADS 2-N: decompress + parse each batch on the rayon pool.
     let workers = std::thread::spawn(move || {
         rx_batches.into_iter().par_bridge().for_each(|(idx, begin, end)| {
             let slice = &data[begin..end];
-            let mut xml = Vec::with_capacity(slice.len() * 8);
+            let mut xml = Vec::with_capacity(slice.len().saturating_mul(8).min(MAX_XML_PREALLOC));
             if let Err(e) = MultiBzDecoder::new(slice).read_to_end(&mut xml) {
+                BZ_ERRORS.fetch_add(1, Ordering::Relaxed);
                 eprintln!("bzip2 error in batch {} ({}..{}): {}", idx, begin, end, e);
             }
             let rows = process_xml(&xml, sample_nulls);
@@ -476,6 +588,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         pending.insert(idx, rows);
         while let Some(rows) = pending.remove(&next_idx) {
             next_idx += 1;
+            // Never blocks: tokens held + batches in flight == BATCH_WINDOW.
+            // Fails only once the scanner has exited, which is harmless.
+            let _ = tx_credit.try_send(());
             for row in rows {
                 n_rows += 1;
                 if row.is_redirect {
@@ -517,20 +632,135 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    writer.flush()?;
-    if let Some(w) = null_writer.as_mut() {
-        w.flush()?;
+    // Close both files before any check so the .tmp contents are complete
+    // on disk whatever happens next.
+    writer.into_inner().map_err(|e| e.into_error())?.sync_all()?;
+    if let Some(w) = null_writer.take() {
+        w.into_inner().map_err(|e| e.into_error())?;
     }
-    scanner.join().map_err(|_| "scanner thread panicked")?;
+    let scanned = scanner.join().map_err(|_| "scanner thread panicked")?;
     workers.join().map_err(|_| "worker thread panicked")?;
+    let batches_sent = scanned?;
 
+    let xml_errors = XML_ERRORS.load(Ordering::Relaxed);
+    let bz_errors = BZ_ERRORS.load(Ordering::Relaxed);
     println!(
-        "\nDone in {:.1?}: {} rows ({} redirects, {} without a target) written to {}",
+        "\nDone in {:.1?}: {} rows ({} redirects, {} without a target) written to {} \
+         ({} bzip2 errors, {} XML errors)",
         start_time.elapsed(),
         n_rows,
         n_redirects,
         n_null,
-        output_csv
+        output_csv,
+        bz_errors,
+        xml_errors
     );
+    if bz_errors + xml_errors > 0 {
+        return Err(format!(
+            "{} batches had errors ({bz_errors} bzip2, {xml_errors} XML); {output_tmp} is incomplete",
+            bz_errors + xml_errors
+        )
+        .into());
+    }
+    if !pending.is_empty() || next_idx != batches_sent {
+        return Err(format!(
+            "wrote {next_idx} of {batches_sent} batches ({} still pending); {output_tmp} is incomplete",
+            pending.len()
+        )
+        .into());
+    }
+    std::fs::rename(&output_tmp, &output_csv)?;
+    if let Some(p) = &null_sample_path {
+        std::fs::rename(format!("{p}.tmp"), p)?;
+    }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn strict(text: &str) -> Option<String> {
+        find_first_links(text).into_iter().next().flatten()
+    }
+
+    // Card 1
+    #[test]
+    fn colon_titles_are_articles() {
+        for t in ["Dune: Part Two", "Halo: Reach", "Alien: Covenant"] {
+            assert!(!is_namespaced(t), "{t}");
+        }
+    }
+
+    #[test]
+    fn namespace_and_interwiki_prefixes_are_namespaced() {
+        for t in ["fr:Paris", "File:X.jpg", "wikt:word", ":Category:X"] {
+            assert!(is_namespaced(t), "{t}");
+        }
+    }
+
+    #[test]
+    fn colon_title_is_chosen_under_every_rule() {
+        let found = find_first_links("See [[Dune: Part Two]] and [[Foo]].");
+        assert!(found.iter().all(|t| t.as_deref() == Some("Dune:_Part_Two")), "{found:?}");
+    }
+
+    // Card 8
+    #[test]
+    fn malformed_link_openers_are_literal_text() {
+        assert_eq!(strict("[[Foo\n[[Bar]]").as_deref(), Some("Bar"));
+        assert_eq!(strict("[[Foo] x [[Bar]]").as_deref(), Some("Bar"));
+        assert_eq!(strict("[[Foo[[Bar]]").as_deref(), Some("Bar"));
+        assert_eq!(strict("[[Foo]").as_deref(), None);
+    }
+
+    #[test]
+    fn caption_may_span_lines() {
+        assert_eq!(strict("[[Foo|a\nb]] [[Bar]]").as_deref(), Some("Foo"));
+    }
+
+    // Card 10
+    #[test]
+    fn unclosed_skip_tag_is_literal_text() {
+        assert_eq!(strict("text <ref>unclosed [[A]] then [[B]]").as_deref(), Some("A"));
+        assert_eq!(strict("x <ref>r [[A]]</ref> [[B]]").as_deref(), Some("B"));
+        assert_eq!(strict("x <!-- [[A]] [[B]]").as_deref(), None);
+    }
+
+    // Card 17
+    #[test]
+    fn entities_decode_once_left_to_right() {
+        assert_eq!(normalize_title("A&amp;quot;B").as_deref(), Some("A&quot;B"));
+        assert_eq!(normalize_title("1914&ndash;1918").as_deref(), Some("1914–1918"));
+        assert_eq!(normalize_title("O&#39;Brien").as_deref(), Some("O'Brien"));
+        assert_eq!(normalize_title("O&#x27;Brien").as_deref(), Some("O'Brien"));
+        assert_eq!(normalize_title("AT&T").as_deref(), Some("AT&T"));
+        assert_eq!(normalize_title("a&nbsp;b").as_deref(), Some("A_b"));
+        assert_eq!(normalize_title("Q&amp;A").as_deref(), Some("Q&A"));
+    }
+
+    // Card 27
+    #[test]
+    fn single_stream_inputs_are_rejected() {
+        assert!(check_multistream(1, 40).is_err());
+        assert!(check_multistream(0, 0).is_err());
+        assert!(check_multistream(3, 64 << 20).is_err());
+        assert!(check_multistream(40, 20 << 20).is_ok());
+    }
+
+    #[test]
+    fn stream_header_detection() {
+        let d = b"xxBZh91AY&SYyy";
+        assert_eq!(stream_start_at(d, 6), Some(2));
+        assert_eq!(stream_start_at(b"Zh91AY&SY", 3), None);
+        assert_eq!(stream_start_at(b"BZhx1AY&SY", 4), None);
+    }
+
+    // Card 18
+    #[test]
+    fn mixed_space_underscore_runs_collapse() {
+        assert_eq!(normalize_title("Foo__Bar").as_deref(), Some("Foo_Bar"));
+        assert_eq!(normalize_title("Foo _Bar").as_deref(), Some("Foo_Bar"));
+        assert_eq!(normalize_title(" _foo bar_ ").as_deref(), Some("Foo_bar"));
+    }
 }
