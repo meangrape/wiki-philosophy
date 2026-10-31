@@ -217,7 +217,7 @@ dead end, printed in full. It includes `06_summary_rule.sql` once per rule.
 
 `make pdf` captures the summary, the comparison, the per-rule reports and the full
 stats into `philosophy.txt`, converts it with `tools/psql_to_md.py` into
-`philosophy.md`, and typesets `philosophy.pdf` with pandoc and xelatex. The
+`philosophy.md`, and typesets `philosophy.pdf` with pandoc and lualatex. The
 document opens with where articles end up and example chains of articles
 that never reach Philosophy.
 
@@ -239,7 +239,7 @@ shortest roads from unexpected places.
 
 ## Results snapshot (dump of 2026-10-01)
 
-Articles: 7,249,098. Redirects: 12,065,386. Red-link targets: 30,031. The
+Articles: 7,249,098. Redirects: 12,065,386. Red-link targets: 90,559 (titles linked under any rule that are not in the dump). The
 two Wikipedia rules disagree with each other far less than either disagrees
 with the single-exclusion variants:
 
@@ -247,8 +247,8 @@ with the single-exclusion variants:
 |---|---|---|---|---|---|
 | strict | parens, italics, templates | 51.5% | 47.4% | 1.0% | 15.2 |
 | parens_ok | italics, templates | 94.8% | 4.2% | 1.0% | 14.1 |
-| skip_parens | parens only | 7.8% | 89.8% | 2.4% | 13.7 |
-| skip_italics | italics only | 16.5% | 81.2% | 2.3% | 14.8 |
+| skip_parens | parens only | 7.8% | 89.7% | 2.5% | 13.7 |
+| skip_italics | italics only | 16.4% | 81.2% | 2.4% | 14.8 |
 | loose | templates only | 94.8% | 4.3% | 0.8% | 14.0 |
 
 - The loose rule and parens_ok give the same answer for

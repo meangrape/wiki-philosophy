@@ -7,9 +7,9 @@
 #   make articles        articles-only results table that the reports read
 #   make stats           short summary for all five rules, with examples
 #   make report compare stats-full
-#   make pdf             philosophy.txt / .md / .pdf from the full stats (needs pandoc + xelatex)
+#   make pdf             philosophy.txt / .md / .pdf from the full stats (needs pandoc + lualatex)
 #   make docs            regenerate the document from the database as it is: reruns only the
-#                        report queries, pandoc and xelatex, never build/parse/load/topology
+#                        report queries, pandoc and lualatex, never build/parse/load/topology
 #   make clean           forget completed stages (keeps the CSV and the database)
 #   make distclean       also delete the CSV and the Rust build
 #
@@ -105,10 +105,11 @@ philosophy.txt: $(ARTICLES_DEP) sql/03_report.sql sql/04_compare.sql sql/05_stat
 	} > $@ 2>&1
 philosophy.md: philosophy.txt tools/psql_to_md.py
 	python3 -I tools/psql_to_md.py $< > $@
-philosophy.pdf: philosophy.md tools/pagebreaks.lua
-	pandoc $< -o $@ --pdf-engine=xelatex --columns=70 --toc --toc-depth=3 \
+philosophy.pdf: philosophy.md tools/pagebreaks.lua Makefile
+	pandoc $< -o $@ --pdf-engine=lualatex --columns=70 --toc --toc-depth=2 \
 	  --lua-filter=tools/pagebreaks.lua -V header-includes='\usepackage{needspace}' \
-	  -V documentclass=extarticle -V fontsize=9pt -V mainfont="Arial Unicode MS" -V monofont="Menlo" \
+	  -V documentclass=extarticle -V fontsize=9pt -V mainfont="Arial" -V mainfontfallback="Arial Unicode MS:mode=harf" \
+	  -V monofont="Menlo" -V monofontfallback="Arial Unicode MS:mode=harf" \
 	  -V geometry:margin=1.6cm -V colorlinks=true -V linkcolor=black
 
 # Rebuild only the document from the database as it is: the sub-make drops
